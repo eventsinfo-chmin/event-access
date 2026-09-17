@@ -221,6 +221,14 @@ button:disabled {
 #attendeeMessage.info{color:#f1c75b !important;background:transparent !important}
 </style>
 
+
+<style>
+html.returning-to-login body{
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+</style>
+
 </head>
 <body>
 <div class="container">
@@ -275,7 +283,7 @@ button:disabled {
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v2.1</div>
+  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v2.2</div>
 </div>
 
 <script>
@@ -380,7 +388,10 @@ function showAttendeeView() {
   if (view) view.style.display = 'block';
 }
 
-function returnToLogin() {
+function returnToLogin(){
+  // Hide the attendee application immediately so protected controls never flash
+  // while the browser is navigating back to the unified login page.
+  document.documentElement.classList.add('returning-to-login');
   window.location.replace('index.html');
 }
 function showAccessScreen() {
@@ -399,6 +410,7 @@ async function updateCountdown(){
 }
 
 async function authorizationExpired() {
+  document.documentElement.classList.add('returning-to-login');
   clearStoredAuthorization();
   returnToLogin();
 }
@@ -413,6 +425,7 @@ syncRoleAwareFilterUI();
 
 
 async function clearAuthorization() {
+  document.documentElement.classList.add('returning-to-login');
   const oldUrl = apiUrl;
   const oldSession = sessionToken;
   clearStoredAuthorization();
