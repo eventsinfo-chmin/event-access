@@ -141,6 +141,64 @@ button:disabled {
 .attendee-comment:focus{border-color:#2e80ff}
 .attendee-comment:disabled{opacity:.75;color:#b7c4d5}
 </style>
+
+<style>
+/* v1.5 attendee filter layout */
+.attendee-toolbar{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  gap:12px !important;
+  align-items:end !important;
+}
+.attendee-toolbar .attendee-field{width:100%;min-width:0}
+.attendee-toolbar .attendee-refresh{
+  grid-column:1 / -1 !important;
+  justify-self:start;
+  margin-top:0 !important;
+}
+#groupFilterField[hidden]{display:none !important}
+@media (max-width:640px){
+  .attendee-toolbar{grid-template-columns:1fr !important}
+  .attendee-toolbar .attendee-refresh{grid-column:1 !important}
+}
+</style>
+
+
+<style>
+/* v1.6 role-aware attendee controls */
+.assigned-group-display{
+  display:block;
+  width:100%;
+  margin:4px 0 18px;
+  font-size:28px;
+  line-height:1.2;
+  font-weight:900;
+  text-align:left;
+  letter-spacing:.2px;
+}
+.assigned-group-display[hidden]{display:none !important}
+@media (max-width:640px){
+  .assigned-group-display{font-size:24px}
+}
+</style>
+
+
+<style>
+#attendeeToolbar[hidden],
+
+</style>
+
+
+<style>
+.refresh-row{
+  width:100%;
+  margin-top:12px;
+  display:flex;
+  justify-content:flex-start;
+}
+.refresh-row .attendee-refresh[hidden]{display:none !important}
+</style>
+
 </head>
 <body>
 <div class="container">
@@ -159,7 +217,8 @@ button:disabled {
         <button id="clearAccessButton" onclick="clearAuthorization()">LOGOUT</button>
       </div>
 
-      <div class="attendee-toolbar">
+      <div id="assignedGroupDisplay" class="assigned-group-display" hidden></div>
+<div class="attendee-toolbar" id="attendeeToolbar">
         <div class="attendee-field">
           <label for="filterMode">Filter Data</label>
           <select id="filterMode" onchange="filterModeChanged()">
@@ -167,14 +226,14 @@ button:disabled {
             <option value="group">By Group Name</option>
           </select>
         </div>
-        <div class="attendee-field">
+        <div class="attendee-field" id="groupFilterField">
           <label for="groupFilter">Group Name</label>
           <select id="groupFilter" disabled onchange="renderAttendees()">
             <option value="">All Groups</option>
           </select>
         </div>
-        <button class="attendee-refresh" type="button" onclick="loadAttendees(true)">REFRESH</button>
-      </div>
+        </div>
+<div class="refresh-row"><button class="attendee-refresh" type="button" onclick="loadAttendees(true)">REFRESH</button></div>
 
       <div id="attendeeMessage"></div>
       <div class="attendee-summary">
@@ -194,10 +253,52 @@ button:disabled {
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9</div>
+  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v1.8</div>
 </div>
 
 <script>
+
+function syncRoleAwareFilterUI(){
+  const toolbar=document.getElementById('attendeeToolbar');
+  const groupDisplay=document.getElementById('assignedGroupDisplay');
+  const refreshButton=document.querySelector('.attendee-refresh');
+  if(!toolbar||!groupDisplay)return;
+
+  const role=String(accessRole||'').trim().toLowerCase();
+  const isGroup=(role==='group');
+
+  if(isGroup){
+    toolbar.hidden=true;
+    toolbar.style.setProperty('display','none','important');
+    if(refreshButton){
+      refreshButton.hidden=false;
+      refreshButton.disabled=false;
+      refreshButton.style.removeProperty('display');
+    }
+    groupDisplay.textContent=String(assignedGroup||'').trim();
+    groupDisplay.hidden=false;
+  }else{
+    toolbar.hidden=false;
+    toolbar.style.removeProperty('display');
+    if(refreshButton){
+      refreshButton.hidden=false;
+      refreshButton.disabled=false;
+      refreshButton.style.removeProperty('display');
+    }
+    groupDisplay.textContent='';
+    groupDisplay.hidden=true;
+    syncGroupFilterVisibility();
+  }
+}
+
+
+function syncGroupFilterVisibility(){
+  const mode=document.getElementById('filterMode');
+  const field=document.getElementById('groupFilterField');
+  if(!mode||!field)return;
+  field.hidden=(mode.value==='all');
+}
+
 let apiUrl = localStorage.getItem('raApiUrl') || '';
 let storedScriptId = localStorage.getItem('raScriptId') || '';
 let sessionToken = localStorage.getItem('raSession') || '';
@@ -208,7 +309,9 @@ let attendeeRows = [];
 let attendeeColumns = [];
 let groupColumn = 'Group Name';
 let accessRole = '';
+syncRoleAwareFilterUI();
 let assignedGroup = '';
+syncRoleAwareFilterUI();
 let confirmedKeys = new Set();
 let savedRecords = new Map();
 let uiConfig = {eventTitle:'REGISTERED ATTENDEES',eventSubtitle:'Event Registration'};
@@ -281,7 +384,9 @@ async function authorizationExpired() {
 function clearStoredAuthorization(){
   apiUrl='';storedScriptId='';sessionToken='';sessionExpiresAt=0;authorizationWindowExpiresAt=0;stopCountdown();
   ['raApiUrl','raScriptId','raSession','raExpiresAt','raAuthorizationWindowExpiresAt','raAccessRole','raAssignedGroup'].forEach(k=>localStorage.removeItem(k));
-  accessRole='';assignedGroup='';
+  accessRole='';
+syncRoleAwareFilterUI();assignedGroup='';
+syncRoleAwareFilterUI();
 }
 
 
@@ -309,7 +414,9 @@ async function loadAttendees(showMessage=false){
     savedRecords=new Map((Array.isArray(result.savedRecords)?result.savedRecords:[]).map(x=>[String(x.key||''),x]));
     groupColumn=String(result.groupColumn||'Group Name');
     accessRole=String(result.accessRole||accessRole||'');
+syncRoleAwareFilterUI();
     assignedGroup=String(result.assignedGroup||assignedGroup||'');
+syncRoleAwareFilterUI();
     localStorage.setItem('raAccessRole',accessRole);
     localStorage.setItem('raAssignedGroup',assignedGroup);
     applyUiConfig(result.uiConfig);
@@ -325,7 +432,8 @@ function buildGroupOptions(){
   select.innerHTML='<option value="">All Groups</option>'+groups.map(g=>'<option value="'+escapeHtml(g)+'">'+escapeHtml(g)+'</option>').join('');
   if(accessRole==='group'&&assignedGroup){
     if(!groups.includes(assignedGroup)){
-      const o=document.createElement('option');o.value=assignedGroup;o.textContent=assignedGroup;select.appendChild(o);
+      const o=document.createElement('option');
+syncRoleAwareFilterUI();o.value=assignedGroup;o.textContent=assignedGroup;select.appendChild(o);
     }
     select.value=assignedGroup;
   } else if(groups.includes(old)) select.value=old;
@@ -335,6 +443,7 @@ function applyGroupAccessUi(){
   const group=document.getElementById('groupFilter');
   if(accessRole==='group'){
     mode.value='group';
+syncRoleAwareFilterUI();
     mode.disabled=true;
     group.value=assignedGroup;
     group.disabled=true;
@@ -343,14 +452,16 @@ function applyGroupAccessUi(){
     group.disabled=mode.value!=='group';
   }
 }
-function filterModeChanged(){
-  if(accessRole==='group'){applyGroupAccessUi();renderAttendees();return;}
+function filterModeChanged(){syncGroupFilterVisibility();
+  if(accessRole==='group'){applyGroupAccessUi();
+syncRoleAwareFilterUI();renderAttendees();return;}
   document.getElementById('groupFilter').disabled=document.getElementById('filterMode').value!=='group';
   renderAttendees();
 }
 function getVisibleRows(){
   if(accessRole==='group'){
     return attendeeRows.filter(r=>String(r[groupColumn]||'')===assignedGroup);
+syncRoleAwareFilterUI();
   }
   const mode=document.getElementById('filterMode').value,g=document.getElementById('groupFilter').value;
   return mode==='group'&&g?attendeeRows.filter(r=>String(r[groupColumn]||'')===g):attendeeRows;
@@ -487,7 +598,9 @@ function escapeHtmlAttr(v){return escapeHtml(v);}
 window.addEventListener('DOMContentLoaded',initializePage);
 async function initializePage(){
   if(authorizationWindowExpiresAt>0)sessionExpiresAt=authorizationWindowExpiresAt;
-  apiUrl=localStorage.getItem('raApiUrl')||apiUrl;storedScriptId=localStorage.getItem('raScriptId')||storedScriptId;sessionToken=localStorage.getItem('raSession')||sessionToken;accessRole=localStorage.getItem('raAccessRole')||'';assignedGroup=localStorage.getItem('raAssignedGroup')||'';
+  apiUrl=localStorage.getItem('raApiUrl')||apiUrl;storedScriptId=localStorage.getItem('raScriptId')||storedScriptId;sessionToken=localStorage.getItem('raSession')||sessionToken;accessRole=localStorage.getItem('raAccessRole')||'';
+syncRoleAwareFilterUI();assignedGroup=localStorage.getItem('raAssignedGroup')||'';
+syncRoleAwareFilterUI();
   const expiry=Number(localStorage.getItem('raAuthorizationWindowExpiresAt')||localStorage.getItem('raExpiresAt')||0);
   if(expiry>0){authorizationWindowExpiresAt=expiry;sessionExpiresAt=expiry;}
   if(!apiUrl||!storedScriptId||!sessionToken||!sessionExpiresAt){showAccessScreen();return;}
@@ -497,11 +610,17 @@ async function initializePage(){
     const result=await apiRequest({action:'verify',session:sessionToken,refreshConfig:true});
     if(result&&result.status==='session_expired'){await authorizationExpired();return;}
     if(result&&result.status==='disabled'){attendeeMessage('error',result.message||'Access is disabled.');return;}
-    if(result&&result.ok===true&&result.status==='authorized'){applyStableAuthorizationExpiry(Number(result.expiresAt||sessionExpiresAt));applyUiConfig(result.uiConfig);accessRole=String(result.accessRole||accessRole||'');assignedGroup=String(result.assignedGroup||assignedGroup||'');await loadAttendees();return;}
+    if(result&&result.ok===true&&result.status==='authorized'){applyStableAuthorizationExpiry(Number(result.expiresAt||sessionExpiresAt));applyUiConfig(result.uiConfig);accessRole=String(result.accessRole||accessRole||'');
+syncRoleAwareFilterUI();assignedGroup=String(result.assignedGroup||assignedGroup||'');
+syncRoleAwareFilterUI();await loadAttendees();return;}
     if(sessionExpiresAt>Date.now()){await loadAttendees();return;}
     await authorizationExpired();
   }catch(error){if(sessionExpiresAt>Date.now()){await loadAttendees();return;}await authorizationExpired();}
 }
+
+syncGroupFilterVisibility();
+
+syncRoleAwareFilterUI();
 </script>
 
 
