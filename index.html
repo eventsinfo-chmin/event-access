@@ -20,33 +20,29 @@ button{border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:700;c
 .footer{text-align:center;color:#687c94;margin-top:18px;font-size:12px;font-weight:400;line-height:1.2}
 </style>
 <style>
-/* Login field alignment correction */
-#accessForm .form-group,
-#accessForm .field,
-#accessForm .input-group {
+/* Login field labels: left aligned */
+#accessForm .form-group {
   width: 100%;
   text-align: left;
 }
-
-#accessForm label {
+#accessForm .form-group > label {
   display: block;
   width: 100%;
   text-align: left !important;
   margin-left: 0;
-  margin-right: 0;
 }
 </style>
 
 </head><body>
-<div class="container"><div class="header"><h1 id="eventTitle"></h1><p>EVENT ACCESS</p></div>
+<div class="container"><div class="header"><h1 id="eventTitle"></h1><p>Event Access</p></div>
 <div class="card"><div class="access-icon">🔐</div><div class="access-title">AUTHORIZED ACCESS</div>
-<div class="access-subtitle">Enter the Apps Script deployment ID and Token ID.<br><br></div>
+<div class="access-subtitle">Enter the Apps Script deployment ID and Token ID.</div>
 <form id="accessForm" onsubmit="authorizeAccess(event)">
 <div class="form-group"><label>Script ID</label><input id="scriptId" type="text" placeholder="Enter SCRIPT_ID" autocomplete="off" required><div class="field-help">Deployment ID, /s/SCRIPT_ID/exec, or complete Apps Script Web App URL.</div></div>
 <div class="form-group"><label>Token ID</label><div class="token-wrapper"><input id="accessToken" type="password" placeholder="Enter TOKEN_ID" autocomplete="off" required><span id="tokenToggle" class="token-toggle" onclick="toggleToken()">SHOW</span></div></div>
 <button id="authorizeButton" type="submit">LOGIN</button></form>
-</div>
-<div class="footer"> Event Access | dmj20 v1.6</div></div>
+<div id="accessMessage" class="access-message"></div><div id="routeInfo" class="route-info"></div></div>
+<div class="footer"> Event Access | dmj20 v1.7</div></div>
 <script>
 const ROUTES={scanner:'scanner.html',attendees:'attendees.html'};
 function normalizeScriptId(value){value=String(value||'').trim();const m=value.match(/\/s\/([^\/]+)\/exec\/?$/i);if(m&&m[1])return m[1];if(/^[A-Za-z0-9_-]+$/.test(value))return value;throw new Error('Invalid Script ID or Apps Script Web App URL.');}
