@@ -194,7 +194,7 @@ button:disabled {
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v1.3</div>
+  <div class="footer">Registered Attendees | dmj20 v1.9</div>
 </div>
 
 <script>
@@ -218,8 +218,8 @@ let uiConfig = {eventTitle:'REGISTERED ATTENDEES',eventSubtitle:'Event Registrat
 function applyUiConfig(config) {
   config=config||{};
   uiConfig={
-    eventTitle:String(config.eventTitle||'REGISTERED ATTENDEES'),
-    eventSubtitle:String(config.eventSubtitle||'Event Registration')
+    eventTitle:String(config.eventTitle||''),
+    eventSubtitle:String(config.eventSubtitle||'')
   };
   document.getElementById('eventTitle').textContent=uiConfig.eventTitle;
   document.getElementById('eventSubtitle').textContent=uiConfig.eventSubtitle;
