@@ -201,9 +201,8 @@ button:disabled {
 
 
 <style>
-/* v2.0 status/message: text label only */
+/* v2.1 attendee message: label/text only, never a box */
 #attendeeMessage{
-  display:block;
   min-height:20px;
   margin:10px 0 6px;
   padding:0 !important;
@@ -276,7 +275,7 @@ button:disabled {
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v2.0</div>
+  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v2.1</div>
 </div>
 
 <script>
@@ -424,14 +423,7 @@ async function clearAuthorization() {
 }
 
 function attendeeMessage(type,text){const e=document.getElementById('attendeeMessage');e.className=type?'attendee-'+type:'';e.textContent=text||'';}
-let attendeeLoadPromise=null;
-async function loadAttendees(forceRefresh=false){
-  if(attendeeLoadPromise)return attendeeLoadPromise;
-  attendeeLoadPromise=loadAttendeesImpl(forceRefresh);
-  try{return await attendeeLoadPromise;}
-  finally{attendeeLoadPromise=null;}
-}
-async function loadAttendeesImpl(showMessage=false){
+async function loadAttendees(showMessage=false){
   if(showMessage)attendeeMessage('loading','Refreshing registered attendees...');
   try{
     const result=await apiRequest({action:'attendees',session:sessionToken,refreshConfig:true});
