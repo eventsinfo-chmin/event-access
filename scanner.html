@@ -368,6 +368,56 @@ button:disabled {
 
 </style>
 
+
+<style>
+/* v1.6 — consistent vertical spacing between scanner boxes */
+.save-mode-panel,
+.queue-panel,
+.recent-panel{
+  margin-top:12px !important;
+  margin-bottom:0 !important;
+}
+
+/* QUEUE / PENDING sits at the same distance from the box above
+   as the other stacked scanner panels. */
+.queue-panel{
+  margin-block-start:12px !important;
+}
+</style>
+
+
+<style>
+/* v1.7 — one consistent vertical gap between every main scanner section */
+:root{
+  --scanner-section-gap:12px;
+}
+
+/* Remove competing bottom margins; spacing is controlled from the next item. */
+.save-mode-panel,
+#status,
+#resultCard,
+.queue-panel,
+#clearQueueButton,
+.recent-panel{
+  margin-bottom:0 !important;
+}
+
+/* Every section after another main section gets exactly the same top gap. */
+.save-mode-panel,
+#status,
+#resultCard,
+.queue-panel,
+#clearQueueButton,
+.recent-panel{
+  margin-top:var(--scanner-section-gap) !important;
+}
+
+/* Keep QUEUE/PENDING internal boxes aligned without changing their own layout. */
+.queue-panel{
+  margin-block-start:var(--scanner-section-gap) !important;
+}
+</style>
+
 </head>
 
 <body>
@@ -561,7 +611,7 @@ button:disabled {
   </div>
 
   <div class="footer">
-    QR Code Scanner | dmj20 v3.8
+    QR Code Scanner | dmj20 v3.8 | Unified v1.7
   </div>
 
 </div>
@@ -2758,10 +2808,61 @@ function showScannerView() {
   if (view) view.style.display = 'block';
 }
 
-function returnToLogin() {
+
+async function clearScannerLocalData(){
+  // Stop active scanning/camera first.
+  try{
+    if(typeof stopScanner==='function') await stopScanner();
+  }catch(e){}
+
+  // Clear scanner-related local/session storage, including auth and UI state.
+  const prefixes=['hwf','HWF_','qrScanner','scanner'];
+  try{
+    for(let i=localStorage.length-1;i>=0;i--){
+      const key=localStorage.key(i);
+      if(key && prefixes.some(function(p){return key.indexOf(p)===0;})){
+        localStorage.removeItem(key);
+      }
+    }
+  }catch(e){}
+  try{
+    for(let i=sessionStorage.length-1;i>=0;i--){
+      const key=sessionStorage.key(i);
+      if(key && prefixes.some(function(p){return key.indexOf(p)===0;})){
+        sessionStorage.removeItem(key);
+      }
+    }
+  }catch(e){}
+
+  // Clear in-memory scanner collections where present.
+  const arrays=['scanQueue','pendingQueue','recentResults','scannedCodes','recentCodes'];
+  arrays.forEach(function(name){
+    try{
+      const value=window[name];
+      if(Array.isArray(value)) value.length=0;
+      else if(value && typeof value.clear==='function') value.clear();
+    }catch(e){}
+  });
+
+  // Delete the scanner IndexedDB so pending/offline scans and cached scan data
+  // cannot survive logout or authorization expiry.
+  try{
+    if(window.indexedDB){
+      await new Promise(function(resolve){
+        const req=indexedDB.deleteDatabase('HWF_CheckIn_DB');
+        req.onsuccess=function(){resolve();};
+        req.onerror=function(){resolve();};
+        req.onblocked=function(){resolve();};
+      });
+    }
+  }catch(e){}
+}
+
+function returnToLogin(){
   window.location.replace('index.html');
 }
-function showAccessScreen() {
+async function showAccessScreen(){
+  await clearScannerLocalData();
   returnToLogin();
 }
 
@@ -2885,6 +2986,7 @@ async function updateCountdown() {
 
 
 async function authorizationExpired() {
+  await clearScannerLocalData();
   clearStoredAuthorization();
   returnToLogin();
 }
@@ -2954,6 +3056,7 @@ function clearStoredAuthorization(
 
 
 async function clearAuthorization() {
+  await clearScannerLocalData();
   const oldUrl = apiUrl;
   const oldSession = sessionToken;
   clearStoredAuthorization();
