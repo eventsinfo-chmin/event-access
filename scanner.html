@@ -60,84 +60,6 @@ body {
   box-shadow: 0 20px 50px rgba(0,0,0,.30);
 }
 
-#accessView {
-  display: block;
-}
-
-.access-icon {
-  text-align: center;
-  font-size: 40px;
-  margin-bottom: 10px;
-}
-
-.access-title {
-  text-align: center;
-  font-size: 22px;
-  font-weight: 800;
-  margin-bottom: 6px;
-}
-
-.access-subtitle {
-  text-align: center;
-  color: #9fb1c7;
-  font-size: 14px;
-  line-height: 1.5;
-  margin-bottom: 22px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  color: #aebed1;
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 7px;
-}
-
-.form-group input {
-  width: 100%;
-  border: 1px solid rgba(255,255,255,.12);
-  background: #0b1625;
-  color: #fff;
-  border-radius: 12px;
-  padding: 14px;
-  font-size: 16px;
-  outline: none;
-}
-
-.form-group input:focus {
-  border-color: #2e80ff;
-}
-
-.field-help {
-  margin-top: 6px;
-  color: #71869f;
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.token-wrapper {
-  position: relative;
-}
-
-.token-wrapper input {
-  padding-right: 70px;
-}
-
-.token-toggle {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #8fa5bd;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
 button {
   border: 0;
   border-radius: 12px;
@@ -152,43 +74,7 @@ button:disabled {
   cursor: not-allowed;
 }
 
-#authorizeButton {
-  width: 100%;
-  background: #2e80ff;
-  color: #fff;
-  margin-top: 5px;
-}
-
-.access-message {
-  display: none;
-  margin-top: 15px;
-  padding: 12px;
-  border-radius: 11px;
-  text-align: center;
-  font-size: 13px;
-}
-
-.access-message.error {
-  display: block;
-  background: #481e25;
-  color: #ffd7dc;
-}
-
-.access-message.processing {
-  display: block;
-  background: #42351b;
-  color: #ffe9a6;
-}
-
-.access-message.success {
-  display: block;
-  background: #123a2c;
-  color: #caffea;
-}
-
-#scannerView {
-  display: none;
-}
+#scannerView { display: block; }
 
 .session-bar {
   display: flex;
@@ -497,89 +383,6 @@ button:disabled {
 
     <!-- ACCESS -->
 
-    <div id="accessView">
-
-      <div class="access-icon">🔐</div>
-
-      <div class="access-title">
-        SCANNER ACCESS
-      </div>
-
-      <div class="access-subtitle">
-        Enter the Apps Script deployment ID and token ID.
-        <br><br>
-        Authorization duration is controlled by CheckIn_Auth.
-      </div>
-
-      <form
-        id="accessForm"
-        onsubmit="authorizeDevice(event)"
-      >
-
-        <div class="form-group">
-
-          <label>Script ID</label>
-
-          <input
-            id="scriptId"
-            type="text"
-            placeholder="Enter SCRIPT_ID"
-            autocomplete="off"
-            required
-          >
-
-          <div class="field-help">
-            Deployment ID, s/SCRIPT_ID/exec,
-            or complete Apps Script Web App URL.
-          </div>
-
-        </div>
-
-        <div class="form-group">
-
-          <label>Token ID</label>
-
-          <div class="token-wrapper">
-
-            <input
-              id="accessToken"
-              type="password"
-              placeholder="Enter TOKEN_ID"
-              autocomplete="off"
-              required
-            >
-
-            <span
-              id="tokenToggle"
-              class="token-toggle"
-              onclick="toggleToken()"
-            >
-              SHOW
-            </span>
-
-          </div>
-
-        </div>
-
-        <button
-          id="authorizeButton"
-          type="submit"
-        >
-          ACTIVATE SCANNER
-        </button>
-
-      </form>
-
-      <div
-        id="accessMessage"
-        class="access-message"
-      ></div>
-
-    </div>
-
-
-    <!-- SCANNER -->
-
     <div id="scannerView">
 
       <div class="session-bar">
@@ -758,7 +561,7 @@ button:disabled {
   </div>
 
   <div class="footer">
-    QR Code Scanner | dmj20 v3.8
+    QR Code Scanner | dmj20 v3.8 | Unified v1.3
   </div>
 
 </div>
@@ -1103,10 +906,7 @@ async function initializePage() {
 
     showAccessScreen();
 
-    showAccessMessage(
-      'error',
-      'Authorization expired. Pending QR codes are preserved. Re-authorize to continue.'
-    );
+    
 
     return;
 
@@ -1144,10 +944,7 @@ async function initializePage() {
       if (scannerRunning) {
         try { await stopScanner(); } catch (ignore) {}
       }
-      showAccessMessage(
-        'error',
-        result.message || 'Scanner access is disabled.'
-      );
+      
       return;
     }
 
@@ -1200,10 +997,7 @@ async function initializePage() {
       // CheckIn_Auth ENABLED=FALSE setting into a permanent logout.
       showAccessScreen();
 
-      showAccessMessage(
-        'error',
-        'Scanner access is currently disabled. Authorization remains stored until it expires or CLEAR ACCESS is pressed.'
-      );
+      
 
       return;
 
@@ -1283,308 +1077,17 @@ async function initializePage() {
  * AUTHORIZE
  ************************************************************/
 
-async function authorizeDevice(event) {
 
-  event.preventDefault();
-
-
-  const scriptInput =
-    document.getElementById(
-      'scriptId'
-    );
-
-  const tokenInput =
-    document.getElementById(
-      'accessToken'
-    );
-
-  const button =
-    document.getElementById(
-      'authorizeButton'
-    );
-
-
-  const scriptValue =
-    String(
-      scriptInput.value || ''
-    ).trim();
-
-  const token =
-    String(
-      tokenInput.value || ''
-    ).trim();
-
-
-  if (
-    !scriptValue ||
-    !token
-  ) {
-
-    showAccessMessage(
-      'error',
-      'Enter both Script ID and token ID.'
-    );
-
-    return;
-
-  }
-
-
-  let normalizedScriptId;
-
-
-  try {
-
-    normalizedScriptId =
-      normalizeScriptId(
-        scriptValue
-      );
-
-  } catch (error) {
-
-    showAccessMessage(
-      'error',
-      error.message
-    );
-
-    return;
-
-  }
-
-
-  const candidateUrl =
-    buildApiUrlFromId(
-      normalizedScriptId
-    );
-
-
-  button.disabled = true;
-
-
-  showAccessMessage(
-    'processing',
-    'Validating scanner access...'
-  );
-
-
-  try {
-
-    const result =
-      await postToUrl(
-        candidateUrl,
-        {
-          action: 'authorize',
-          scriptId:
-            normalizedScriptId,
-          token: token
-        }
-      );
-
-
-    // Never retain permanent token.
-    tokenInput.value = '';
-
-
-    if (
-      result.ok === true &&
-      result.status ===
-        'authorized' &&
-      result.session
-    ) {
-
-      apiUrl =
-        candidateUrl;
-
-      storedScriptId =
-        normalizedScriptId;
-
-      sessionToken =
-        String(result.session);
-
-
-      let serverExpiresAt = 0;
-
-      if (result.expiresAt) {
-
-        serverExpiresAt =
-          Number(result.expiresAt);
-
-      } else if (
-        result.expiresIn
-      ) {
-
-        serverExpiresAt =
-          Date.now() +
-          Number(result.expiresIn) * 1000;
-
-      } else {
-
-        throw new Error(
-          'Server did not return authorization expiration.'
-        );
-
-      }
-
-      applyStableAuthorizationExpiry(serverExpiresAt);
-
-
-      applyQrValidationConfig(result.qrValidation);
-      applyUiConfig(result.uiConfig);
-
-      localStorage.setItem(
-        'hwfApiUrl',
-        apiUrl
-      );
-
-      localStorage.setItem(
-        'hwfScriptId',
-        storedScriptId
-      );
-
-      localStorage.setItem(
-        'hwfSession',
-        sessionToken
-      );
-
-      localStorage.setItem(
-        'hwfExpiresAt',
-        String(
-          sessionExpiresAt
-        )
-      );
-
-      // This is the fixed authorization window used after every refresh.
-      localStorage.setItem(
-        'hwfAuthorizationWindowExpiresAt',
-        String(sessionExpiresAt)
-      );
-
-
-      hideAccessMessage();
-
-      showScannerView();
-
-      startCountdown();
-
-
-      setStatus(
-        'ready',
-        'SCANNER AUTHORIZED',
-        scanQueue.length > 0
-          ? 'Resuming pending QR check-ins.'
-          : 'Press Start Camera to begin scanning.'
-      );
-
-
-      processScanQueue();
-
-      return;
-
-    }
-
-
-    showAccessMessage(
-      'error',
-      result.message ||
-      'Invalid Script ID or token ID.'
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      'Authorization error:',
-      error
-    );
-
-    tokenInput.value = '';
-
-    showAccessMessage(
-      'error',
-      error.message ||
-      'Unable to connect to Apps Script.'
-    );
-
-
-  } finally {
-
-    button.disabled = false;
-
-  }
-
-}
 
 
 /************************************************************
  * SCRIPT ID
  ************************************************************/
 
-function normalizeScriptId(value) {
-
-  value =
-    String(
-      value || ''
-    ).trim();
-
-  if (!value) {
-
-    throw new Error(
-      'Script ID is required.'
-    );
-
-  }
 
 
-  let match =
-    value.match(
-      /^https:\/\/script\.google\.com\/macros\/s\/([^\/]+)\/exec\/?$/i
-    );
-
-  if (
-    match &&
-    match[1]
-  ) {
-    return match[1];
-  }
 
 
-  match =
-    value.match(
-      /^\/?s\/([^\/]+)\/exec\/?$/i
-    );
-
-  if (
-    match &&
-    match[1]
-  ) {
-    return match[1];
-  }
-
-
-  if (
-    /^[A-Za-z0-9_-]+$/
-      .test(value)
-  ) {
-    return value;
-  }
-
-
-  throw new Error(
-    'Invalid Apps Script deployment ID.'
-  );
-
-}
-
-
-function buildApiUrlFromId(scriptId) {
-
-  return (
-    'https://script.google.com/macros/s/' +
-    scriptId +
-    '/exec'
-  );
-
-}
 
 
 /************************************************************
@@ -2472,10 +1975,7 @@ async function processQueueItem(
 
       showAccessScreen();
 
-      showAccessMessage(
-        'error',
-        'Scanner access is disabled. Pending QR codes are preserved.'
-      );
+      
 
       return 'pause';
 
@@ -3253,6 +2753,18 @@ function setStatus(
  * SESSION COUNTDOWN
  ************************************************************/
 
+function showScannerView() {
+  const view = document.getElementById('scannerView');
+  if (view) view.style.display = 'block';
+}
+
+function returnToLogin() {
+  window.location.replace('index.html');
+}
+function showAccessScreen() {
+  returnToLogin();
+}
+
 function startCountdown() {
 
   stopCountdown();
@@ -3362,103 +2874,20 @@ async function updateCountdown() {
  * AUTH EXPIRED
  ************************************************************/
 
-async function authorizationExpired() {
 
-  if (scannerRunning) {
-
-    try {
-      await stopScanner();
-    } catch (ignore) {}
-
-  }
-
-
-  persistQueue();
-
-  clearRecentResults();
-  clearStoredAuthorization(false);
-
-  showAccessScreen();
-
-
-  showAccessMessage(
-    'error',
-    scanQueue.length > 0
-      ? 'Authorization expired. ' +
-        scanQueue.length +
-        ' pending QR code(s) are preserved. Re-authorize to continue.'
-      : 'Authorization expired. Enter the Script ID and Token ID again.'
-  );
-
-
-  errorFeedback();
-
-}
 
 
 /************************************************************
  * CLEAR ACCESS
  ************************************************************/
 
-async function clearAuthorization() {
-
-  const oldUrl =
-    apiUrl;
-
-  const oldSession =
-    sessionToken;
 
 
-  if (scannerRunning) {
 
-    try {
-      await stopScanner();
-    } catch (ignore) {}
-
-  }
-
-
-  persistQueue();
-
-  clearRecentResults();
-  clearStoredAuthorization(false);
-
-  showAccessScreen();
-
-
-  showAccessMessage(
-    'success',
-    scanQueue.length > 0
-      ? 'Access cleared. Pending QR codes are preserved.'
-      : 'Scanner access cleared.'
-  );
-
-
-  if (
-    oldUrl &&
-    oldSession
-  ) {
-
-    try {
-
-      await postToUrl(
-        oldUrl,
-        {
-          action: 'logout',
-          session: oldSession
-        }
-      );
-
-    } catch (error) {
-
-      console.warn(error);
-
-    }
-
-  }
-
+async function authorizationExpired() {
+  clearStoredAuthorization();
+  returnToLogin();
 }
-
 
 function clearStoredAuthorization(
   clearQueue = false
@@ -3524,132 +2953,41 @@ function clearStoredAuthorization(
 }
 
 
+async function clearAuthorization() {
+  const oldUrl = apiUrl;
+  const oldSession = sessionToken;
+  clearStoredAuthorization();
+  if (oldUrl && oldSession) {
+    try { await postToUrl(oldUrl, {action:'logout', session:oldSession}); } catch(ignore) {}
+  }
+  returnToLogin();
+}
+
 /************************************************************
  * VIEWS
  ************************************************************/
 
-function showAccessScreen() {
-
-  document
-    .getElementById(
-      'scannerView'
-    )
-    .style.display =
-      'none';
 
 
-  document
-    .getElementById(
-      'accessView'
-    )
-    .style.display =
-      'block';
-
-}
 
 
-function showScannerView() {
-
-  document
-    .getElementById(
-      'accessView'
-    )
-    .style.display =
-      'none';
-
-
-  document
-    .getElementById(
-      'scannerView'
-    )
-    .style.display =
-      'block';
-
-
-  hideAccessMessage();
-
-  updateQueueDisplay();
-
-}
 
 
 /************************************************************
  * ACCESS MESSAGE
  ************************************************************/
 
-function showAccessMessage(
-  type,
-  message
-) {
-
-  const element =
-    document.getElementById(
-      'accessMessage'
-    );
-
-  element.className =
-    'access-message ' +
-    type;
-
-  element.textContent =
-    message;
-
-}
 
 
-function hideAccessMessage() {
 
-  const element =
-    document.getElementById(
-      'accessMessage'
-    );
 
-  element.className =
-    'access-message';
-
-  element.textContent = '';
-
-}
 
 
 /************************************************************
  * TOKEN
  ************************************************************/
 
-function toggleToken() {
 
-  const input =
-    document.getElementById(
-      'accessToken'
-    );
-
-  const toggle =
-    document.getElementById(
-      'tokenToggle'
-    );
-
-
-  if (
-    input.type ===
-    'password'
-  ) {
-
-    input.type = 'text';
-
-    toggle.textContent =
-      'HIDE';
-
-  } else {
-
-    input.type =
-      'password';
-
-    toggle.textContent =
-      'SHOW';
-
-  }
-
-}
 
 
 /************************************************************
@@ -3946,40 +3284,7 @@ window.addEventListener(
 </script>
 
 
-<script>
-/* Unified Access v1.1 redirect */
-(function() {
-  function goLogin() {
-    window.location.replace('index.html');
-  }
 
-  // Existing application functions are already defined at this point.
-  if (typeof window.showAccessScreen === 'function') {
-    const originalShowAccessScreen = window.showAccessScreen;
-    window.showAccessScreen = function() {
-      try { originalShowAccessScreen.apply(this, arguments); } catch(ignore) {}
-      goLogin();
-    };
-  }
-
-  // Extra guard for a page opened directly with no valid authorization.
-  window.addEventListener('load', function() {
-    const sessionKey = 'hwfSession';
-    const expiryKey = 'hwfExpiresAt';
-    const session =
-      localStorage.getItem(sessionKey) ||
-      sessionStorage.getItem(sessionKey) || '';
-    const expiry = Number(
-      localStorage.getItem(expiryKey) ||
-      sessionStorage.getItem(expiryKey) || 0
-    );
-
-    if (!session || !expiry || expiry <= Date.now()) {
-      goLogin();
-    }
-  });
-})();
-</script>
 
 </body>
 </html>
