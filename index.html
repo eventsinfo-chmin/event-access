@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>HINIRANG 2026 | Event Access</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(135deg,#07111f,#0c1b2e);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;display:flex;justify-content:center;padding:24px 14px}
+.container{width:100%;max-width:520px}.header{text-align:center;margin-bottom:20px}.header h1{margin:0;font-size:28px;font-weight:800}.header p{color:#9fb1c7;margin:7px 0 0}
+.card{background:#101d2e;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.30)}
+.access-icon{text-align:center;font-size:40px;margin-bottom:10px}.access-title{text-align:center;font-size:22px;font-weight:800;margin-bottom:6px}
+.access-subtitle{text-align:center;color:#9fb1c7;font-size:14px;line-height:1.5;margin-bottom:22px}.form-group{margin-bottom:15px}
+.form-group label{display:block;color:#aebed1;font-size:13px;font-weight:700;margin-bottom:7px}.form-group input{width:100%;border:1px solid rgba(255,255,255,.12);background:#0b1625;color:#fff;border-radius:12px;padding:14px;font-size:16px;outline:none}
+.form-group input:focus{border-color:#2e80ff}.field-help{margin-top:6px;color:#71869f;font-size:11px;line-height:1.5}.token-wrapper{position:relative}.token-wrapper input{padding-right:70px}
+.token-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#8fa5bd;font-size:12px;font-weight:700;cursor:pointer}
+button{border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}
+#authorizeButton{width:100%;background:#2e80ff;color:#fff;margin-top:5px}.access-message{display:none;margin-top:15px;padding:12px;border-radius:11px;text-align:center;font-size:13px}
+.access-message.error{display:block;background:#481e25;color:#ffd7dc}.access-message.processing{display:block;background:#42351b;color:#ffe9a6}.access-message.success{display:block;background:#123a2c;color:#caffea}
+.route-info{display:none;margin-top:14px;padding:11px;border-radius:11px;background:#0b1625;color:#8fa5bd;text-align:center;font-size:12px}
+.footer{text-align:center;color:#687c94;margin-top:18px;font-size:12px;font-weight:400;line-height:1.2}
+</style></head><body>
+<div class="container"><div class="header"><h1>HINIRANG 2026</h1><p>Event Access</p></div>
+<div class="card"><div class="access-icon">🔐</div><div class="access-title">AUTHORIZED ACCESS</div>
+<div class="access-subtitle">Enter the Apps Script deployment ID and Token ID.<br><br>The system will automatically open the correct application. Authorization duration is controlled by that application's setup.</div>
+<form id="accessForm" onsubmit="authorizeAccess(event)">
+<div class="form-group"><label>Script ID</label><input id="scriptId" type="text" placeholder="Enter SCRIPT_ID" autocomplete="off" required><div class="field-help">Deployment ID, /s/SCRIPT_ID/exec, or complete Apps Script Web App URL.</div></div>
+<div class="form-group"><label>Token ID</label><div class="token-wrapper"><input id="accessToken" type="password" placeholder="Enter TOKEN_ID" autocomplete="off" required><span id="tokenToggle" class="token-toggle" onclick="toggleToken()">SHOW</span></div></div>
+<button id="authorizeButton" type="submit">LOGIN</button></form>
+<div id="accessMessage" class="access-message"></div><div id="routeInfo" class="route-info"></div></div>
+<div class="footer">HINIRANG 2026 Event Access @ dmj20 v1.0</div></div>
+<script>
+const ROUTES={scanner:'scanner.html',attendees:'attendees.html'};
+function normalizeScriptId(value){value=String(value||'').trim();const m=value.match(/\/s\/([^\/]+)\/exec\/?$/i);if(m&&m[1])return m[1];if(/^[A-Za-z0-9_-]+$/.test(value))return value;throw new Error('Invalid Script ID or Apps Script Web App URL.');}
+function buildApiUrlFromId(id){return 'https://script.google.com/macros/s/'+id+'/exec';}
+async function postToUrl(url,data){const response=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data),redirect:'follow',cache:'no-store'});const text=await response.text();if(text){try{const result=JSON.parse(text);if(result&&typeof result==='object'&&typeof result.status==='string')return result;}catch(ignore){}}if(!response.ok)throw new Error('Server returned HTTP '+response.status);throw new Error('Invalid response from Apps Script.');}
+function detectApplication(result){const explicit=String(result.appType||result.application||'').toLowerCase();if(explicit==='qr_scanner'||explicit==='scanner')return 'scanner';if(explicit==='registered_attendees'||explicit==='attendees')return 'attendees';if(Object.prototype.hasOwnProperty.call(result,'accessRole')||Object.prototype.hasOwnProperty.call(result,'assignedGroup'))return 'attendees';if(Object.prototype.hasOwnProperty.call(result,'qrValidation'))return 'scanner';return '';}
+function getServerExpiry(result){if(result.expiresAt)return Number(result.expiresAt);if(result.expiresIn)return Date.now()+Number(result.expiresIn)*1000;return 0;}
+function clearScannerStorage(){['hwfApiUrl','hwfScriptId','hwfSession','hwfExpiresAt','hwfAuthorizationWindowExpiresAt'].forEach(k=>localStorage.removeItem(k));}
+function clearAttendeeStorage(){['raApiUrl','raScriptId','raSession','raExpiresAt','raAuthorizationWindowExpiresAt','raAccessRole','raAssignedGroup'].forEach(k=>localStorage.removeItem(k));}
+function saveScannerSession(apiUrl,scriptId,result){const expiry=getServerExpiry(result);if(!expiry)throw new Error('Scanner server did not return authorization expiration.');clearAttendeeStorage();localStorage.setItem('hwfApiUrl',apiUrl);localStorage.setItem('hwfScriptId',scriptId);localStorage.setItem('hwfSession',String(result.session||''));localStorage.setItem('hwfExpiresAt',String(expiry));localStorage.setItem('hwfAuthorizationWindowExpiresAt',String(expiry));}
+function saveAttendeeSession(apiUrl,scriptId,result){const expiry=getServerExpiry(result);if(!expiry)throw new Error('Registered Attendees server did not return authorization expiration.');clearScannerStorage();localStorage.setItem('raApiUrl',apiUrl);localStorage.setItem('raScriptId',scriptId);localStorage.setItem('raSession',String(result.session||''));localStorage.setItem('raExpiresAt',String(expiry));localStorage.setItem('raAuthorizationWindowExpiresAt',String(expiry));localStorage.setItem('raAccessRole',String(result.accessRole||''));localStorage.setItem('raAssignedGroup',String(result.assignedGroup||''));}
+async function authorizeAccess(event){event.preventDefault();const scriptInput=document.getElementById('scriptId'),tokenInput=document.getElementById('accessToken'),button=document.getElementById('authorizeButton');const scriptValue=String(scriptInput.value||'').trim(),token=String(tokenInput.value||'').trim();if(!scriptValue||!token){showMessage('error','Enter both Script ID and Token ID.');return;}let scriptId;try{scriptId=normalizeScriptId(scriptValue);}catch(error){showMessage('error',error.message);return;}const apiUrl=buildApiUrlFromId(scriptId);button.disabled=true;showMessage('processing','Validating access and identifying application...');try{const result=await postToUrl(apiUrl,{action:'authorize',scriptId:scriptId,token:token});tokenInput.value='';if(!(result.ok===true&&result.status==='authorized'&&result.session)){showMessage('error',result.message||'Invalid Script ID or Token ID.');return;}let app=detectApplication(result);let merged=result;if(!app){const verify=await postToUrl(apiUrl,{action:'verify',session:String(result.session),refreshConfig:true});app=detectApplication(verify);merged=Object.assign({},result,verify,{session:result.session});}if(!app)throw new Error('Authorized, but the application type could not be identified.');if(app==='scanner')saveScannerSession(apiUrl,scriptId,merged);else saveAttendeeSession(apiUrl,scriptId,merged);routeTo(app);}catch(error){tokenInput.value='';showMessage('error',error.message||'Unable to connect to Apps Script.');}finally{button.disabled=false;}}
+function routeTo(app){const info=document.getElementById('routeInfo');info.style.display='block';info.textContent=app==='scanner'?'QR Scanner authorized. Opening scanner...':'Registered Attendees authorized. Opening attendee list...';setTimeout(()=>{window.location.href=ROUTES[app];},250);}
+function showMessage(type,message){const e=document.getElementById('accessMessage');e.className='access-message '+type;e.textContent=message;}
+function toggleToken(){const input=document.getElementById('accessToken'),toggle=document.getElementById('tokenToggle');if(input.type==='password'){input.type='text';toggle.textContent='HIDE';}else{input.type='password';toggle.textContent='SHOW';}}
+</script></body></html>

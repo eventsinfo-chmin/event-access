@@ -1,0 +1,3985 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+>
+
+<title>QR Code Scanner</title>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg,#07111f,#0c1b2e);
+  color: #fff;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 24px 14px;
+}
+
+.container {
+  width: 100%;
+  max-width: 520px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.header p {
+  color: #9fb1c7;
+  margin: 7px 0 0;
+}
+
+.card {
+  background: #101d2e;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.30);
+}
+
+#accessView {
+  display: block;
+}
+
+.access-icon {
+  text-align: center;
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.access-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.access-subtitle {
+  text-align: center;
+  color: #9fb1c7;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  color: #aebed1;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+
+.form-group input {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,.12);
+  background: #0b1625;
+  color: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 16px;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: #2e80ff;
+}
+
+.field-help {
+  margin-top: 6px;
+  color: #71869f;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.token-wrapper {
+  position: relative;
+}
+
+.token-wrapper input {
+  padding-right: 70px;
+}
+
+.token-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8fa5bd;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+#authorizeButton {
+  width: 100%;
+  background: #2e80ff;
+  color: #fff;
+  margin-top: 5px;
+}
+
+.access-message {
+  display: none;
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 11px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.access-message.error {
+  display: block;
+  background: #481e25;
+  color: #ffd7dc;
+}
+
+.access-message.processing {
+  display: block;
+  background: #42351b;
+  color: #ffe9a6;
+}
+
+.access-message.success {
+  display: block;
+  background: #123a2c;
+  color: #caffea;
+}
+
+#scannerView {
+  display: none;
+}
+
+.session-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #0b1625;
+  padding: 11px 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.session-label {
+  color: #71869f;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.session-active {
+  color: #56d39b;
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 3px;
+}
+
+#sessionCountdown {
+  color: #8fa5bd;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+#clearAccessButton {
+  background: #26364b;
+  color: #fff;
+  padding: 9px 12px;
+  font-size: 11px;
+}
+
+.queue-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.queue-box {
+  background: #0b1625;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  padding: 11px 12px;
+  text-align: center;
+}
+
+.queue-label {
+  color: #71869f;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.queue-number {
+  margin-top: 3px;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+#queueCount {
+  color: #62a7ff;
+}
+
+#pendingCount {
+  color: #ffd66b;
+}
+
+#clearQueueButton {
+  width: 100%; margin: -2px 0 12px; background: #481e25; color: #ffd7dc; border: 1px solid rgba(255,143,156,.25);
+}
+
+
+.save-mode-panel {
+  background:#0b1625; border:1px solid rgba(255,255,255,.07); border-radius:13px;
+  padding:13px; margin-bottom:12px;
+}
+
+.save-mode-toggle { width:100%; display:flex; justify-content:space-between; align-items:center; background:transparent; color:#8194aa; border:0; padding:0; font-size:11px; font-weight:800; text-transform:uppercase; cursor:pointer; }
+#saveModeBody { margin-top:10px; }
+#saveModeBody.hidden { display:none; }
+.save-mode-title { color:#8194aa; font-size:11px; font-weight:800; text-transform:uppercase; margin-bottom:10px; }
+.save-mode-options { display:flex; gap:10px; flex-wrap:wrap; }
+.save-mode-option { flex:1; min-width:150px; display:flex; gap:8px; align-items:center; padding:10px; border-radius:10px; background:#101d2e; cursor:pointer; font-size:13px; }
+.save-mode-option input { accent-color:#2e80ff; }
+.delimiter-row { display:none; margin-top:10px; grid-template-columns:1fr 90px; gap:10px; align-items:end; }
+.delimiter-row.active { display:grid; }
+.delimiter-row label { display:block; color:#aebed1; font-size:12px; font-weight:700; margin-bottom:6px; }
+.delimiter-row input { width:100%; border:1px solid rgba(255,255,255,.12); background:#101d2e; color:#fff; border-radius:10px; padding:11px; font-size:16px; outline:none; }
+.save-preview { margin-top:9px; color:#71869f; font-size:11px; line-height:1.5; word-break:break-all; }
+.saved-value { margin-top:6px; color:#56d39b; font-size:12px; word-break:break-all; }
+
+#reader {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 15px;
+  background: #000;
+}
+
+#reader video {
+  border-radius: 15px;
+}
+
+.controls {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+#startButton {
+  background: #2e80ff;
+  color: #fff;
+}
+
+#stopButton {
+  background: #26364b;
+  color: #fff;
+}
+
+.status {
+  margin-top: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  text-align: center;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #18283b;
+}
+
+.status-title {
+  font-size: 21px;
+  font-weight: 800;
+  margin-bottom: 7px;
+}
+
+.status-message {
+  color: #b7c4d5;
+  font-size: 14px;
+  word-break: break-word;
+}
+
+.status.ready {
+  background: #18283b;
+}
+
+.status.captured {
+  background: #173458;
+}
+
+.status.processing {
+  background: #42351b;
+}
+
+.status.success {
+  background: #123a2c;
+}
+
+.status.duplicate {
+  background: #493b13;
+}
+
+.status.error {
+  background: #481e25;
+}
+
+.result-card {
+  margin-top: 14px;
+  padding: 15px;
+  background: #0b1625;
+  border-radius: 13px;
+  display: none;
+}
+
+.result-label {
+  color: #8194aa;
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+#qrResult {
+  font-size: 16px;
+  font-weight: 700;
+  word-break: break-all;
+}
+
+#timestamp {
+  margin-top: 8px;
+  color: #8194aa;
+  font-size: 13px;
+}
+
+#serverTime {
+  margin-top: 4px;
+  color: #687c94;
+  font-size: 11px;
+}
+
+.recent-panel {
+  margin-top: 14px;
+  background: #0b1625;
+  border-radius: 13px;
+  padding: 12px;
+}
+
+.recent-title {
+  color: #8194aa;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.recent-item {
+  padding: 8px 5px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.recent-item:last-child {
+  border-bottom: none;
+}
+
+.recent-code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+#recentList {
+  max-height: 390px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+#recentList .recent-item {
+  min-height: 38px;
+  align-items: center;
+  font-size: 12px;
+}
+
+#recentList .recent-success,
+#recentList .recent-duplicate,
+#recentList .recent-error,
+#recentList .recent-queue,
+#recentList .recent-pending {
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.recent-success {
+  color: #56d39b;
+}
+
+.recent-duplicate {
+  color: #ffd66b;
+}
+
+.recent-error {
+  color: #ff8f9c;
+}
+
+.recent-queue {
+  color: #62a7ff;
+}
+
+.recent-pending {
+  color: #ffd66b;
+}
+
+.footer {
+  text-align: center;
+  color: #687c94;
+  margin-top: 18px;
+  font-size: 12px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1 id="eventTitle">QR CODE SCANNER</h1>
+    <p id="eventSubtitle">Event CheckIn</p>
+  </div>
+
+  <div class="card">
+
+    <!-- ACCESS -->
+
+    <div id="accessView">
+
+      <div class="access-icon">🔐</div>
+
+      <div class="access-title">
+        SCANNER ACCESS
+      </div>
+
+      <div class="access-subtitle">
+        Enter the Apps Script deployment ID and token ID.
+        <br><br>
+        Authorization duration is controlled by CheckIn_Auth.
+      </div>
+
+      <form
+        id="accessForm"
+        onsubmit="authorizeDevice(event)"
+      >
+
+        <div class="form-group">
+
+          <label>Script ID</label>
+
+          <input
+            id="scriptId"
+            type="text"
+            placeholder="Enter SCRIPT_ID"
+            autocomplete="off"
+            required
+          >
+
+          <div class="field-help">
+            Deployment ID, s/SCRIPT_ID/exec,
+            or complete Apps Script Web App URL.
+          </div>
+
+        </div>
+
+        <div class="form-group">
+
+          <label>Token ID</label>
+
+          <div class="token-wrapper">
+
+            <input
+              id="accessToken"
+              type="password"
+              placeholder="Enter TOKEN_ID"
+              autocomplete="off"
+              required
+            >
+
+            <span
+              id="tokenToggle"
+              class="token-toggle"
+              onclick="toggleToken()"
+            >
+              SHOW
+            </span>
+
+          </div>
+
+        </div>
+
+        <button
+          id="authorizeButton"
+          type="submit"
+        >
+          ACTIVATE SCANNER
+        </button>
+
+      </form>
+
+      <div
+        id="accessMessage"
+        class="access-message"
+      ></div>
+
+    </div>
+
+
+    <!-- SCANNER -->
+
+    <div id="scannerView">
+
+      <div class="session-bar">
+
+        <div>
+
+          <div class="session-label">
+            Scanner Authorization
+          </div>
+
+          <div class="session-active">
+            ● AUTHORIZED
+          </div>
+
+          <div id="sessionCountdown">
+            —
+          </div>
+
+        </div>
+
+        <button
+          id="clearAccessButton"
+          onclick="clearAuthorization()"
+        >
+          CLEAR ACCESS
+        </button>
+
+      </div>
+
+
+      <div class="save-mode-panel">
+        <button type="button" class="save-mode-toggle" onclick="toggleSaveModePanel()" aria-expanded="true">
+          <span>QR Save Mode</span><span id="saveModeToggleIcon">▲</span>
+        </button>
+        <div id="saveModeBody">
+        <div class="save-mode-options">
+          <label for="saveModeSelect" style="display:block;color:#aebed1;font-size:12px;font-weight:700;margin-bottom:6px;">Save option</label>
+          <select id="saveModeSelect" onchange="saveModeChanged()" style="width:100%;border:1px solid rgba(255,255,255,.12);background:#101d2e;color:#fff;border-radius:10px;padding:11px;font-size:15px;outline:none;">
+            <option value="full">Save Full QR Code</option>
+            <option value="before">Save Before Character</option>
+            <option value="split">Save Split with Specific Character</option>
+          </select>
+        </div>
+        <div id="delimiterRow" class="delimiter-row">
+          <div>
+            <label for="delimiterInput">Specific character / text</label>
+            <input id="delimiterInput" type="text" value="/" maxlength="20" placeholder="Example: /  -  ,  @" oninput="delimiterChanged()">
+          </div>
+          <button type="button" onclick="setCommonDelimiter('/')" style="background:#26364b;color:#fff;padding:11px;">Use /</button>
+        </div>
+        <div id="saveModeHelp" class="save-preview">Full mode: the complete scanned QR value will be saved.</div>
+        </div>
+      </div>
+
+      <div id="reader"></div>
+
+
+      <div class="controls">
+
+        <button
+          id="startButton"
+          onclick="startScanner()"
+        >
+          Start Camera
+        </button>
+
+        <button
+          id="stopButton"
+          onclick="stopScanner()"
+          disabled
+        >
+          Stop Camera
+        </button>
+
+      </div>
+
+
+      <div
+        id="status"
+        class="status ready"
+      >
+
+        <div
+          id="statusTitle"
+          class="status-title"
+        >
+          READY
+        </div>
+
+        <div
+          id="statusMessage"
+          class="status-message"
+        >
+          Press Start Camera to begin scanning.
+        </div>
+
+      </div>
+
+
+      <div
+        id="resultCard"
+        class="result-card"
+      >
+
+        <div class="result-label">
+          LAST SCANNED QR
+        </div>
+
+        <div id="qrResult">
+          —
+        </div>
+        <div id="savedValue" class="saved-value"></div>
+
+        <div id="timestamp"></div>
+
+        <div id="serverTime"></div>
+
+      </div>
+
+
+      <div class="queue-panel">
+
+        <div class="queue-box">
+
+          <div class="queue-label">
+            Queue
+          </div>
+
+          <div
+            id="queueCount"
+            class="queue-number"
+          >
+            0
+          </div>
+
+        </div>
+
+        <div class="queue-box">
+
+          <div class="queue-label">
+            Pending
+          </div>
+
+          <div
+            id="pendingCount"
+            class="queue-number"
+          >
+            0
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+
+      <button id="clearQueueButton" type="button" onclick="stopAndClearQueue()">STOP &amp; CLEAR QUEUE</button>
+
+      <div class="recent-panel">
+
+        <div class="recent-title">
+          SCANNED QR CODE
+        </div>
+
+        <div id="recentList">
+          <div style="color:#687c94;text-align:center;padding:8px;">
+            No scans yet.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="footer">
+    QR Code Scanner @ dmj20 v3.8 | Unified Access v1.1
+  </div>
+
+</div>
+
+
+<script>
+
+/************************************************************
+ * CONFIG
+ ************************************************************/
+
+const CONFIG = {
+
+  FPS: 20,
+
+  MAX_QR_LENGTH: 500,
+
+  // Same QR only. Different QR codes are accepted immediately.
+  SAME_QR_COOLDOWN: 2500,
+
+  RECENT_CODE_TTL: 10000,
+
+  BUSY_RETRY_DELAY: 200,
+
+  BUSY_MAX_RETRIES: 8,
+
+  NETWORK_RETRY_DELAY: 350,
+
+  MAX_NETWORK_RETRIES: 2,
+
+  // Verification request waits max 3 seconds.
+  VERIFY_TIMEOUT: 4000,
+
+  // Prevent one scan request from holding PENDING indefinitely.
+  SCAN_REQUEST_TIMEOUT: 8000,
+
+  MAX_QUEUE_SIZE: 200,
+
+  MAX_RECENT_RESULTS: 8,
+
+  // Persistent queue + local duplicate cache.
+  DB_NAME: 'HWF_CheckIn_DB',
+  DB_VERSION: 1,
+  MAX_CONFIRMED_CACHE: 2000
+
+};
+
+
+/************************************************************
+ * STATE
+ ************************************************************/
+
+let html5QrCode = null;
+
+let scannerRunning = false;
+
+let scanQueue = [];
+
+let queueWorkerRunning = false;
+
+let currentPending = null;
+let queueStopRequested = false;
+let activeScanController = null;
+
+const recentlyCaptured =
+  new Map();
+
+// Fast same-device duplicate protection. Server remains authoritative
+// across all scanner devices.
+const locallyConfirmed = new Set();
+
+let recentResults = [];
+
+// Only the camera capture handler changes this value.
+// Background queue processing is not allowed to replace LAST SCANNED QR.
+let lastCapturedQr = '';
+
+let countdownTimer = null;
+
+
+let apiUrl =
+  localStorage.getItem(
+    'hwfApiUrl'
+  ) || sessionStorage.getItem(
+    'hwfApiUrl'
+  ) || '';
+
+let storedScriptId =
+  localStorage.getItem(
+    'hwfScriptId'
+  ) || sessionStorage.getItem(
+    'hwfScriptId'
+  ) || '';
+
+let sessionToken =
+  localStorage.getItem(
+    'hwfSession'
+  ) || sessionStorage.getItem(
+    'hwfSession'
+  ) || '';
+
+let sessionExpiresAt =
+  Number(
+    localStorage.getItem(
+      'hwfExpiresAt'
+    ) || sessionStorage.getItem(
+      'hwfExpiresAt'
+    ) || 0
+  );
+
+// Fixed authorization window for this device.
+// Refreshing or authorizing again cannot extend it.
+// CLEAR ACCESS or natural expiration removes it.
+let authorizationWindowExpiresAt =
+  Number(localStorage.getItem('hwfAuthorizationWindowExpiresAt') || 0);
+
+function applyStableAuthorizationExpiry(serverExpiresAt) {
+  const now = Date.now();
+  const serverExpiry = Number(serverExpiresAt || 0);
+
+  if (!serverExpiry) return 0;
+
+  if (authorizationWindowExpiresAt > now) {
+    sessionExpiresAt = Math.min(serverExpiry, authorizationWindowExpiresAt);
+  } else {
+    authorizationWindowExpiresAt = serverExpiry;
+    sessionExpiresAt = serverExpiry;
+  }
+
+  localStorage.setItem(
+    'hwfAuthorizationWindowExpiresAt',
+    String(authorizationWindowExpiresAt)
+  );
+  localStorage.setItem(
+    'hwfExpiresAt',
+    String(sessionExpiresAt)
+  );
+
+  return sessionExpiresAt;
+}
+
+// Server-controlled QR prefix validation. This is refreshed whenever
+// the scanner authorizes or verifies its session. The backend always
+// performs the same validation and remains authoritative.
+let qrValidation = {
+  enabled: false,
+  specificText: ''
+};
+
+let uiConfig = {
+  eventTitle: '',
+  eventSubtitle: ''
+};
+
+function applyQrValidationConfig(config) {
+  config = config || {};
+  qrValidation = {
+    enabled: config.enabled === true && String(config.specificText || '') !== '',
+    specificText: String(config.specificText || '')
+  };
+}
+
+function applyUiConfig(config) {
+  config = config || {};
+
+  uiConfig = {
+    eventTitle: String(config.eventTitle || ''),
+    eventSubtitle: String(config.eventSubtitle || '')
+  };
+
+  const title = document.getElementById('eventTitle');
+  const subtitle = document.getElementById('eventSubtitle');
+
+  if (title) title.textContent = uiConfig.eventTitle;
+  if (subtitle) subtitle.textContent = uiConfig.eventSubtitle;
+}
+
+function validateQrLocally(rawCode) {
+  if (!qrValidation.enabled || !qrValidation.specificText) return { ok: true };
+  const value = String(rawCode || '').replace(/[\u0000-\u001F\u007F]/g, '').trim();
+  if (!value.startsWith(qrValidation.specificText)) {
+    return {
+      ok: false,
+      message: uiConfig.eventSubtitle
+        ? 'QR code must be for "' + uiConfig.eventSubtitle + '".'
+        : 'QR code is not accepted for this event.'
+    };
+  }
+  return { ok: true };
+}
+
+
+
+/************************************************************
+ * QR AUDIO FEEDBACK
+ *
+ * Valid beep:
+ *   Plays only when the captured QR passes the current
+ *   SPECIFIC_TEXT rule from CheckIn_Auth.
+ *
+ * Invalid sound:
+ *   Plays only when the captured QR fails SPECIFIC_TEXT.
+ *
+ * No external MP3/WAV files are required.
+ ************************************************************/
+let qrAudioContext = null;
+
+function getQrAudioContext() {
+  try {
+    if (!qrAudioContext) {
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+
+      if (!AudioContextClass) return null;
+
+      qrAudioContext = new AudioContextClass();
+    }
+
+    if (qrAudioContext.state === 'suspended') {
+      qrAudioContext.resume().catch(function() {});
+    }
+
+    return qrAudioContext;
+  } catch (ignore) {
+    return null;
+  }
+}
+
+function playQrTone(frequency, duration, delay) {
+  const ctx = getQrAudioContext();
+  if (!ctx) return;
+
+  try {
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const startAt = ctx.currentTime + Number(delay || 0);
+    const stopAt = startAt + Number(duration || 0.08);
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, startAt);
+
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(0.18, startAt + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+
+    oscillator.start(startAt);
+    oscillator.stop(stopAt + 0.01);
+  } catch (ignore) {}
+}
+
+function playRecognizedQrSound() {
+  // One short, clear confirmation beep.
+  playQrTone(1050, 0.09, 0);
+}
+
+function playInvalidSpecificTextSound() {
+  // Two lower tones make invalid QR clearly different.
+  playQrTone(330, 0.11, 0);
+  playQrTone(220, 0.16, 0.13);
+}
+
+function unlockQrAudio() {
+  const ctx = getQrAudioContext();
+  if (!ctx) return;
+
+  if (ctx.state === 'suspended') {
+    ctx.resume().catch(function() {});
+  }
+}
+
+// Mobile Safari/Chrome may require a user gesture before audio is allowed.
+document.addEventListener('click', unlockQrAudio, { passive: true });
+document.addEventListener('touchstart', unlockQrAudio, { passive: true });
+
+/************************************************************
+ * INITIALIZE
+ ************************************************************/
+
+window.addEventListener(
+  'DOMContentLoaded',
+  initializePage
+);
+
+
+async function initializePage() {
+
+  restoreSaveSettings();
+  restoreSaveModePanelVisibility();
+  await restoreQueue();
+  restoreConfirmedCache();
+  restoreRecentResults();
+
+  updateQueueDisplay();
+  renderRecentResults();
+
+
+  // Restore the original authorization expiry after every refresh.
+  // This absolute timestamp is created at authorization time and is not
+  // extended by reloads.
+  if (authorizationWindowExpiresAt > 0) {
+    sessionExpiresAt = authorizationWindowExpiresAt;
+  }
+
+  // Re-read persistent credentials at startup in case the page script was
+  // restored from browser cache/BFCache.
+  apiUrl = localStorage.getItem('hwfApiUrl') || apiUrl;
+  storedScriptId = localStorage.getItem('hwfScriptId') || storedScriptId;
+  sessionToken = localStorage.getItem('hwfSession') || sessionToken;
+
+  const persistedExpiry = Number(
+    localStorage.getItem('hwfAuthorizationWindowExpiresAt') ||
+    localStorage.getItem('hwfExpiresAt') ||
+    0
+  );
+
+  if (persistedExpiry > 0) {
+    authorizationWindowExpiresAt = persistedExpiry;
+    sessionExpiresAt = persistedExpiry;
+  }
+
+  if (
+    !apiUrl ||
+    !storedScriptId ||
+    !sessionToken ||
+    !sessionExpiresAt
+  ) {
+    // There is no complete stored authorization to restore.
+    showAccessScreen();
+    return;
+  }
+
+
+  if (
+    Date.now() >=
+    sessionExpiresAt
+  ) {
+
+    clearStoredAuthorization(false);
+
+    showAccessScreen();
+
+    showAccessMessage(
+      'error',
+      'Authorization expired. Pending QR codes are preserved. Re-authorize to continue.'
+    );
+
+    return;
+
+  }
+
+
+  // IMPORTANT: a valid stored authorization survives unlimited page refreshes.
+  // Show the scanner immediately. The verify request below only refreshes
+  // CheckIn_Auth settings and confirms server state; it is not a new login.
+  if (sessionExpiresAt > Date.now()) {
+    showScannerView();
+    startCountdown();
+  }
+
+
+  try {
+
+    const result =
+      await apiRequest({
+        action: 'verify',
+        session: sessionToken,
+        refreshConfig: true
+      });
+
+    // A refresh must log out ONLY when the backend explicitly confirms
+    // that this session has expired.
+    if (result && result.status === 'session_expired') {
+      await authorizationExpired();
+      return;
+    }
+
+    // If scanner access was disabled in CheckIn_Auth, stop scanning but
+    // preserve the session until its normal expiry / CLEAR ACCESS.
+    if (result && result.status === 'disabled') {
+      if (scannerRunning) {
+        try { await stopScanner(); } catch (ignore) {}
+      }
+      showAccessMessage(
+        'error',
+        result.message || 'Scanner access is disabled.'
+      );
+      return;
+    }
+
+
+    if (
+      result.ok === true &&
+      result.status ===
+        'authorized'
+    ) {
+
+      if (result.expiresAt) {
+        applyStableAuthorizationExpiry(result.expiresAt);
+      }
+
+
+      applyQrValidationConfig(result.qrValidation);
+      applyUiConfig(result.uiConfig);
+
+      // Keep the authorized scanner signed in across refreshes and
+      // browser restarts until the server-side authorization expires
+      // or the operator presses CLEAR ACCESS.
+      localStorage.setItem('hwfApiUrl', apiUrl);
+      localStorage.setItem('hwfScriptId', storedScriptId);
+      localStorage.setItem('hwfSession', sessionToken);
+      localStorage.setItem('hwfExpiresAt', String(sessionExpiresAt));
+
+      showScannerView();
+
+      startCountdown();
+
+      processScanQueue();
+
+      return;
+
+    }
+
+
+    if (
+      result.status ===
+        'disabled'
+    ) {
+
+      if (scannerRunning) {
+        try {
+          await stopScanner();
+        } catch (ignore) {}
+      }
+
+      // Preserve the original authorization window. Do not convert a
+      // CheckIn_Auth ENABLED=FALSE setting into a permanent logout.
+      showAccessScreen();
+
+      showAccessMessage(
+        'error',
+        'Scanner access is currently disabled. Authorization remains stored until it expires or CLEAR ACCESS is pressed.'
+      );
+
+      return;
+
+    }
+
+  } catch (error) {
+
+    console.warn(
+      'Session verification failed:',
+      error
+    );
+
+    // IMPORTANT:
+    // A refresh/config/network failure is NOT an authorization failure.
+    // Keep the locally stored session until its real expiration time or
+    // until the user explicitly presses CLEAR ACCESS.
+    if (
+      sessionToken &&
+      sessionExpiresAt >
+        Date.now()
+    ) {
+
+      showScannerView();
+      startCountdown();
+
+      setStatus(
+        'ready',
+        'AUTHORIZED',
+        'Using the current authorization. CheckIn_Auth settings will be checked again on the next refresh.'
+      );
+
+      try {
+        if (!scannerRunning) {
+          await startScanner();
+        }
+      } catch (ignore) {}
+
+      return;
+
+    }
+
+    // Only a genuinely expired local authorization returns to login.
+    await authorizationExpired();
+    return;
+
+  }
+
+
+  // If the server returned an unexpected/non-definitive response but the
+  // locally stored authorization is still active, stay on the scanner.
+  if (
+    sessionToken &&
+    sessionExpiresAt >
+      Date.now()
+  ) {
+
+    showScannerView();
+    startCountdown();
+
+    try {
+      if (!scannerRunning) {
+        await startScanner();
+      }
+    } catch (ignore) {}
+
+    return;
+
+  }
+
+
+  await authorizationExpired();
+
+}
+
+
+/************************************************************
+ * AUTHORIZE
+ ************************************************************/
+
+async function authorizeDevice(event) {
+
+  event.preventDefault();
+
+
+  const scriptInput =
+    document.getElementById(
+      'scriptId'
+    );
+
+  const tokenInput =
+    document.getElementById(
+      'accessToken'
+    );
+
+  const button =
+    document.getElementById(
+      'authorizeButton'
+    );
+
+
+  const scriptValue =
+    String(
+      scriptInput.value || ''
+    ).trim();
+
+  const token =
+    String(
+      tokenInput.value || ''
+    ).trim();
+
+
+  if (
+    !scriptValue ||
+    !token
+  ) {
+
+    showAccessMessage(
+      'error',
+      'Enter both Script ID and token ID.'
+    );
+
+    return;
+
+  }
+
+
+  let normalizedScriptId;
+
+
+  try {
+
+    normalizedScriptId =
+      normalizeScriptId(
+        scriptValue
+      );
+
+  } catch (error) {
+
+    showAccessMessage(
+      'error',
+      error.message
+    );
+
+    return;
+
+  }
+
+
+  const candidateUrl =
+    buildApiUrlFromId(
+      normalizedScriptId
+    );
+
+
+  button.disabled = true;
+
+
+  showAccessMessage(
+    'processing',
+    'Validating scanner access...'
+  );
+
+
+  try {
+
+    const result =
+      await postToUrl(
+        candidateUrl,
+        {
+          action: 'authorize',
+          scriptId:
+            normalizedScriptId,
+          token: token
+        }
+      );
+
+
+    // Never retain permanent token.
+    tokenInput.value = '';
+
+
+    if (
+      result.ok === true &&
+      result.status ===
+        'authorized' &&
+      result.session
+    ) {
+
+      apiUrl =
+        candidateUrl;
+
+      storedScriptId =
+        normalizedScriptId;
+
+      sessionToken =
+        String(result.session);
+
+
+      let serverExpiresAt = 0;
+
+      if (result.expiresAt) {
+
+        serverExpiresAt =
+          Number(result.expiresAt);
+
+      } else if (
+        result.expiresIn
+      ) {
+
+        serverExpiresAt =
+          Date.now() +
+          Number(result.expiresIn) * 1000;
+
+      } else {
+
+        throw new Error(
+          'Server did not return authorization expiration.'
+        );
+
+      }
+
+      applyStableAuthorizationExpiry(serverExpiresAt);
+
+
+      applyQrValidationConfig(result.qrValidation);
+      applyUiConfig(result.uiConfig);
+
+      localStorage.setItem(
+        'hwfApiUrl',
+        apiUrl
+      );
+
+      localStorage.setItem(
+        'hwfScriptId',
+        storedScriptId
+      );
+
+      localStorage.setItem(
+        'hwfSession',
+        sessionToken
+      );
+
+      localStorage.setItem(
+        'hwfExpiresAt',
+        String(
+          sessionExpiresAt
+        )
+      );
+
+      // This is the fixed authorization window used after every refresh.
+      localStorage.setItem(
+        'hwfAuthorizationWindowExpiresAt',
+        String(sessionExpiresAt)
+      );
+
+
+      hideAccessMessage();
+
+      showScannerView();
+
+      startCountdown();
+
+
+      setStatus(
+        'ready',
+        'SCANNER AUTHORIZED',
+        scanQueue.length > 0
+          ? 'Resuming pending QR check-ins.'
+          : 'Press Start Camera to begin scanning.'
+      );
+
+
+      processScanQueue();
+
+      return;
+
+    }
+
+
+    showAccessMessage(
+      'error',
+      result.message ||
+      'Invalid Script ID or token ID.'
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      'Authorization error:',
+      error
+    );
+
+    tokenInput.value = '';
+
+    showAccessMessage(
+      'error',
+      error.message ||
+      'Unable to connect to Apps Script.'
+    );
+
+
+  } finally {
+
+    button.disabled = false;
+
+  }
+
+}
+
+
+/************************************************************
+ * SCRIPT ID
+ ************************************************************/
+
+function normalizeScriptId(value) {
+
+  value =
+    String(
+      value || ''
+    ).trim();
+
+  if (!value) {
+
+    throw new Error(
+      'Script ID is required.'
+    );
+
+  }
+
+
+  let match =
+    value.match(
+      /^https:\/\/script\.google\.com\/macros\/s\/([^\/]+)\/exec\/?$/i
+    );
+
+  if (
+    match &&
+    match[1]
+  ) {
+    return match[1];
+  }
+
+
+  match =
+    value.match(
+      /^\/?s\/([^\/]+)\/exec\/?$/i
+    );
+
+  if (
+    match &&
+    match[1]
+  ) {
+    return match[1];
+  }
+
+
+  if (
+    /^[A-Za-z0-9_-]+$/
+      .test(value)
+  ) {
+    return value;
+  }
+
+
+  throw new Error(
+    'Invalid Apps Script deployment ID.'
+  );
+
+}
+
+
+function buildApiUrlFromId(scriptId) {
+
+  return (
+    'https://script.google.com/macros/s/' +
+    scriptId +
+    '/exec'
+  );
+
+}
+
+
+/************************************************************
+ * QR SAVE MODE
+ ************************************************************/
+function toggleSaveModePanel() {
+  const body = document.getElementById('saveModeBody');
+  const icon = document.getElementById('saveModeToggleIcon');
+  const button = document.querySelector('.save-mode-toggle');
+  if (!body) return;
+  const hidden = body.classList.toggle('hidden');
+  if (icon) icon.textContent = hidden ? '▼' : '▲';
+  if (button) button.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+  localStorage.setItem('hwfSaveModePanelHidden', hidden ? '1' : '0');
+}
+
+function restoreSaveModePanelVisibility() {
+  const hidden = localStorage.getItem('hwfSaveModePanelHidden') === '1';
+  const body = document.getElementById('saveModeBody');
+  const icon = document.getElementById('saveModeToggleIcon');
+  const button = document.querySelector('.save-mode-toggle');
+  if (body) body.classList.toggle('hidden', hidden);
+  if (icon) icon.textContent = hidden ? '▼' : '▲';
+  if (button) button.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+}
+
+function getSaveSettings() {
+  const select = document.getElementById('saveModeSelect');
+  let mode = select ? select.value : 'full';
+  if (!['full','before','split'].includes(mode)) mode = 'full';
+  const delimiter = String((document.getElementById('delimiterInput') || {}).value || '/');
+  return { mode, delimiter };
+}
+function restoreSaveSettings() {
+  let mode = localStorage.getItem('hwfSaveMode') || 'full';
+  if (!['full','before','split'].includes(mode)) mode = 'full';
+  const delimiter = localStorage.getItem('hwfDelimiter');
+  const select = document.getElementById('saveModeSelect');
+  if (select) select.value = mode;
+  const input = document.getElementById('delimiterInput');
+  if (input && delimiter !== null) input.value = delimiter;
+  saveModeChanged(false);
+}
+function saveModeChanged(persist = true) {
+  const s = getSaveSettings();
+  const row = document.getElementById('delimiterRow');
+  const help = document.getElementById('saveModeHelp');
+  if (row) row.classList.toggle('active', s.mode === 'before' || s.mode === 'split');
+  if (help) {
+    if (s.mode === 'full') help.textContent = 'Full mode: the complete scanned QR value will be saved.';
+    else if (s.mode === 'before') help.textContent = 'Before-character mode: only the value before the first occurrence of "' + (s.delimiter || '(empty)') + '" will be saved.';
+    else help.textContent = 'Split mode: split the QR using "' + (s.delimiter || '(empty)') + '" and save every part in a separate Google Sheet column.';
+  }
+  if (persist) {
+    localStorage.setItem('hwfSaveMode', s.mode);
+    localStorage.setItem('hwfDelimiter', s.delimiter);
+  }
+}
+function delimiterChanged() { saveModeChanged(true); }
+function setCommonDelimiter(value) {
+  document.getElementById('delimiterInput').value = value;
+  delimiterChanged();
+}
+function transformQrValue(raw, mode, delimiter) {
+  let value = String(raw || '').replace(/[\u0000-\u001F\u007F]/g, '').trim();
+  if (mode === 'full') return value;
+  delimiter = String(delimiter || '');
+  if (!delimiter) return value;
+  if (mode === 'before') {
+    const index = value.indexOf(delimiter);
+    return (index >= 0 ? value.slice(0, index) : value).trim();
+  }
+  if (mode === 'split') {
+    const parts = value.split(delimiter).map(part => String(part).trim());
+    return parts.length ? parts[0] : '';
+  }
+  return value;
+}
+
+/************************************************************
+ * START CAMERA
+ ************************************************************/
+
+async function startScanner() {
+
+  if (scannerRunning) {
+    return;
+  }
+
+
+  if (
+    !sessionToken ||
+    !apiUrl ||
+    !sessionExpiresAt ||
+    Date.now() >=
+      sessionExpiresAt
+  ) {
+
+    await authorizationExpired();
+    return;
+
+  }
+
+
+  html5QrCode =
+    new Html5Qrcode(
+      'reader'
+    );
+
+
+  setStatus(
+    'processing',
+    'STARTING CAMERA',
+    'Please allow camera access.'
+  );
+
+
+  try {
+
+    const cameras =
+      await Html5Qrcode
+        .getCameras();
+
+
+    if (
+      !cameras ||
+      cameras.length === 0
+    ) {
+
+      throw new Error(
+        'No camera was found.'
+      );
+
+    }
+
+
+    let cameraId =
+      cameras[0].id;
+
+
+    for (
+      const camera of cameras
+    ) {
+
+      const label =
+        String(
+          camera.label || ''
+        ).toLowerCase();
+
+      if (
+        label.includes('back') ||
+        label.includes('rear') ||
+        label.includes('environment')
+      ) {
+
+        cameraId =
+          camera.id;
+
+        break;
+
+      }
+
+    }
+
+
+    await html5QrCode.start(
+
+      cameraId,
+
+      {
+        fps: CONFIG.FPS,
+
+        qrbox:
+          function(width, height) {
+
+            const size =
+              Math.floor(
+                Math.min(
+                  width,
+                  height
+                ) * 0.72
+              );
+
+            return {
+              width: size,
+              height: size
+            };
+
+          }
+      },
+
+      onScanSuccess,
+
+      function() {}
+
+    );
+
+
+    scannerRunning = true;
+
+
+    document
+      .getElementById(
+        'startButton'
+      )
+      .disabled = true;
+
+
+    document
+      .getElementById(
+        'stopButton'
+      )
+      .disabled = false;
+
+
+    setStatus(
+      'ready',
+      'SCANNER READY',
+      'Rapid scanning enabled. Different QR codes can be scanned immediately.'
+    );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    setStatus(
+      'error',
+      'CAMERA ERROR',
+      error.message ||
+      'Unable to start camera.'
+    );
+
+  }
+
+}
+
+
+/************************************************************
+ * STOP CAMERA
+ ************************************************************/
+
+async function stopScanner() {
+
+  if (
+    !html5QrCode ||
+    !scannerRunning
+  ) {
+    return;
+  }
+
+
+  try {
+
+    await html5QrCode.stop();
+
+    await html5QrCode.clear();
+
+  } catch (error) {
+
+    console.warn(error);
+
+  }
+
+
+  scannerRunning = false;
+
+
+  document
+    .getElementById(
+      'startButton'
+    )
+    .disabled = false;
+
+
+  document
+    .getElementById(
+      'stopButton'
+    )
+    .disabled = true;
+
+
+  setStatus(
+    'ready',
+    'CAMERA STOPPED',
+    scanQueue.length > 0 ||
+    currentPending
+      ? 'Pending check-ins will continue processing.'
+      : 'Press Start Camera to scan again.'
+  );
+
+}
+
+
+/************************************************************
+ * QR CAPTURE
+ ************************************************************/
+
+function onScanSuccess(
+  decodedText
+) {
+
+  const code =
+    String(
+      decodedText || ''
+    ).trim();
+
+  // This is the actual newest QR seen by the camera.
+  lastCapturedQr = code;
+  showResult(code, '', null, code);
+
+
+
+  if (!code) {
+    return;
+  }
+
+
+  if (
+    code.length >
+    CONFIG.MAX_QR_LENGTH
+  ) {
+
+    setStatus(
+      'error',
+      'INVALID QR CODE',
+      'QR code contains too much data.'
+    );
+
+    errorFeedback();
+
+    return;
+
+  }
+
+
+  // Debounce every decoded QR BEFORE validation.
+  // This prevents the same invalid QR from being added repeatedly
+  // while it remains visible to the camera.
+  const now =
+    Date.now();
+
+
+  cleanupRecentlyCaptured(now);
+
+
+  const previousTime =
+    recentlyCaptured.get(code) || 0;
+
+
+  if (
+    now -
+    previousTime <
+    CONFIG.SAME_QR_COOLDOWN
+  ) {
+    return;
+  }
+
+
+  // Remember valid AND invalid QR codes.
+  recentlyCaptured.set(
+    code,
+    now
+  );
+
+
+  const qrRule = validateQrLocally(code);
+  if (!qrRule.ok) {
+
+    // INVALID AUDIO ONLY for the CheckIn_Auth SPECIFIC_TEXT rule.
+    // Do not use this sound for duplicate/network/server processing states.
+    if (
+      qrValidation.enabled &&
+      qrValidation.specificText &&
+      !String(code || '').startsWith(qrValidation.specificText)
+    ) {
+      playInvalidSpecificTextSound();
+    }
+
+    setStatus('error', 'INVALID QR CODE', qrRule.message);
+    showResult(code, '', null, 'REJECTED');
+    addRecentResult(code, 'error', 'INVALID QR');
+    errorFeedback();
+    return;
+  }
+
+  // QR passed the current SPECIFIC_TEXT rule: acknowledge immediately.
+  playRecognizedQrSound();
+
+
+
+  const saveSettings = getSaveSettings();
+  const savedCode = transformQrValue(code, saveSettings.mode, saveSettings.delimiter);
+  if (!savedCode) {
+    setStatus('error','INVALID QR CODE','Nothing remains before the selected character.');
+    errorFeedback();
+    return;
+  }
+
+  /**********************************************************
+   * FAST LOCAL DUPLICATE PROTECTION
+   *
+   * Compare the actual value that will be saved, not only
+   * the full raw QR. This catches two different QR strings
+   * that normalize to the same saved ID.
+   **********************************************************/
+
+  if (isSavedCodeAlreadyQueued(savedCode)) {
+    return;
+  }
+
+  if (locallyConfirmed.has(normalizeLocalKey(savedCode))) {
+    showResult(code, '', null, savedCode);
+    setStatus('duplicate','ALREADY CHECKED IN','Detected instantly on this scanner.');
+    addRecentResult(code,'duplicate','DUPLICATE');
+    duplicateFeedback();
+    return;
+  }
+
+  if (scanQueue.length >= CONFIG.MAX_QUEUE_SIZE) {
+    setStatus('error','QUEUE FULL','Please allow pending check-ins to process.');
+    errorFeedback();
+    return;
+  }
+
+  const item = {
+
+    id: createQueueId(),
+
+    code: code,
+    saveMode: saveSettings.mode,
+    delimiter: saveSettings.delimiter,
+    savedCode: savedCode,
+
+    capturedAt: now,
+
+    busyRetries: 0,
+
+    networkRetries: 0
+
+  };
+
+
+  scanQueue.push(item);
+
+  persistQueue();
+
+  updateQueueDisplay();
+
+  // Display every scanned QR immediately and show its live queue state.
+  updateRecentResultStatus(code, 'queue', 'QUEUE');
+
+  showResult(code, '', null, savedCode);
+
+
+  setStatus(
+    'captured',
+    'QR CAPTURED',
+    'Added to check-in queue.'
+  );
+
+
+  captureFeedback();
+
+
+  processScanQueue();
+
+}
+
+
+/************************************************************
+ * LOCAL DUPLICATE PROTECTION
+ ************************************************************/
+
+function normalizeLocalKey(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isSavedCodeAlreadyQueued(savedCode) {
+  const key = normalizeLocalKey(savedCode);
+
+  if (currentPending && normalizeLocalKey(currentPending.savedCode || currentPending.code) === key) {
+    return true;
+  }
+
+  return scanQueue.some(function(item) {
+    return normalizeLocalKey(item.savedCode || item.code) === key;
+  });
+}
+
+// Backward-compatible helper.
+function isCodeAlreadyQueued(code) {
+  return isSavedCodeAlreadyQueued(code);
+}
+
+function rememberConfirmed(savedCode) {
+  const key = normalizeLocalKey(savedCode);
+  if (!key) return;
+  locallyConfirmed.add(key);
+
+  // Keep the cache bounded and persistent on this device.
+  while (locallyConfirmed.size > CONFIG.MAX_CONFIRMED_CACHE) {
+    const first = locallyConfirmed.values().next().value;
+    locallyConfirmed.delete(first);
+  }
+
+  try {
+    localStorage.setItem('hwfConfirmedCodes', JSON.stringify(Array.from(locallyConfirmed)));
+  } catch (error) {
+    console.warn('Unable to persist confirmed-code cache:', error);
+  }
+}
+
+function restoreConfirmedCache() {
+  try {
+    const raw = localStorage.getItem('hwfConfirmedCodes');
+    if (!raw) return;
+    const values = JSON.parse(raw);
+    if (!Array.isArray(values)) return;
+    values.slice(-CONFIG.MAX_CONFIRMED_CACHE).forEach(function(value) {
+      const key = normalizeLocalKey(value);
+      if (key) locallyConfirmed.add(key);
+    });
+  } catch (error) {
+    console.warn('Unable to restore confirmed-code cache:', error);
+  }
+}
+
+
+function cleanupRecentlyCaptured(now) {
+
+  for (
+    const [code, time]
+    of recentlyCaptured.entries()
+  ) {
+
+    if (
+      now - time >
+      CONFIG.RECENT_CODE_TTL
+    ) {
+
+      recentlyCaptured.delete(code);
+
+    }
+
+  }
+
+}
+
+
+function createQueueId() {
+
+  return (
+    Date.now().toString(36) +
+    '-' +
+    Math.random()
+      .toString(36)
+      .slice(2, 10)
+  );
+
+}
+
+
+/************************************************************
+ * HIGH-SPEED QUEUE WORKER
+ ************************************************************/
+
+async function processScanQueue() {
+
+  if (queueWorkerRunning) {
+    return;
+  }
+
+
+  if (
+    !apiUrl ||
+    !sessionToken ||
+    !sessionExpiresAt ||
+    Date.now() >=
+      sessionExpiresAt
+  ) {
+    return;
+  }
+
+
+  queueWorkerRunning = true;
+  queueStopRequested = false;
+
+
+  try {
+
+    while (
+      scanQueue.length > 0 &&
+      !queueStopRequested
+    ) {
+
+      if (
+        Date.now() >=
+        sessionExpiresAt
+      ) {
+
+        await authorizationExpired();
+        break;
+
+      }
+
+
+      const item =
+        scanQueue[0];
+
+
+      currentPending = item;
+
+      updateQueueDisplay();
+      updateRecentResultStatus(item.code, 'pending', 'PROCESSING');
+
+
+      const outcome =
+        await processQueueItem(
+          item
+        );
+
+
+      if (
+        outcome ===
+        'completed'
+      ) {
+
+        if (
+          scanQueue.length > 0 &&
+          scanQueue[0].id ===
+            item.id
+        ) {
+
+          scanQueue.shift();
+
+        } else {
+
+          scanQueue =
+            scanQueue.filter(
+              function(q) {
+                return q.id !== item.id;
+              }
+            );
+
+        }
+
+
+        currentPending = null;
+
+        persistQueue();
+
+        updateQueueDisplay();
+
+        continue;
+
+      }
+
+
+      if (
+        outcome ===
+        'pause'
+      ) {
+
+        currentPending = null;
+
+        persistQueue();
+
+        updateQueueDisplay();
+
+        break;
+
+      }
+
+    }
+
+  } finally {
+
+    currentPending = null;
+
+    queueWorkerRunning = false;
+
+    updateQueueDisplay();
+
+  }
+
+}
+
+
+/************************************************************
+ * PROCESS ONE QR
+ ************************************************************/
+
+async function processQueueItem(
+  item
+) {
+
+  try {
+
+    if (queueStopRequested) return 'pause';
+
+    const controller = new AbortController();
+    activeScanController = controller;
+    const requestTimeout = setTimeout(function() { controller.abort(); }, CONFIG.SCAN_REQUEST_TIMEOUT);
+
+    let result;
+    try {
+      result = await apiRequest({
+        action: 'scan',
+        session: sessionToken,
+        requestId: item.id,
+        code: item.code,
+        saveMode: item.saveMode || 'full',
+        delimiter: item.delimiter || '',
+      }, controller.signal);
+    } finally {
+      clearTimeout(requestTimeout);
+      if (activeScanController === controller) activeScanController = null;
+    }
+
+
+    /********************************************************
+     * SUCCESS
+     ********************************************************/
+
+    if (
+      result.ok === true &&
+      result.status ===
+        'success'
+    ) {
+
+      showResult(
+        item.code,
+        result.timestamp || '',
+        result.serverMs,
+        result.savedCode || item.savedCode || item.code
+      );
+
+
+      setStatus(
+        'success',
+        'CHECK-IN SUCCESSFUL',
+        'Saved successfully. Continuing queue...'
+      );
+
+
+      rememberConfirmed(result.savedCode || item.savedCode || item.code);
+
+      addRecentResult(
+        item.code,
+        'success',
+        'SAVED'
+      );
+
+
+      successFeedback();
+
+      return 'completed';
+
+    }
+
+
+    /********************************************************
+     * DUPLICATE
+     ********************************************************/
+
+    if (
+      result.ok === true &&
+      result.status ===
+        'duplicate'
+    ) {
+
+      showResult(
+        item.code,
+        result.timestamp || '',
+        result.serverMs,
+        result.savedCode || item.savedCode || item.code
+      );
+
+
+      setStatus(
+        'duplicate',
+        'ALREADY CHECKED IN',
+        'QR ID already exists. Continuing queue...'
+      );
+
+
+      rememberConfirmed(result.savedCode || item.savedCode || item.code);
+
+      addRecentResult(
+        item.code,
+        'duplicate',
+        'DUPLICATE'
+      );
+
+
+      duplicateFeedback();
+
+      return 'completed';
+
+    }
+
+
+    /********************************************************
+     * BUSY
+     ********************************************************/
+
+    if (
+      result.status ===
+        'busy'
+    ) {
+
+      item.busyRetries =
+        Number(
+          item.busyRetries || 0
+        ) + 1;
+
+      persistQueue();
+
+
+      if (
+        item.busyRetries <=
+        CONFIG.BUSY_MAX_RETRIES
+      ) {
+
+        await sleep(
+          CONFIG.BUSY_RETRY_DELAY
+        );
+
+        return await processQueueItem(
+          item
+        );
+
+      }
+
+
+      item.busyRetries = 0;
+
+      persistQueue();
+
+      await sleep(500);
+
+      return await processQueueItem(
+        item
+      );
+
+    }
+
+
+    /********************************************************
+     * SESSION EXPIRED
+     ********************************************************/
+
+    if (
+      result.status ===
+        'session_expired'
+    ) {
+
+      await authorizationExpired();
+
+      return 'pause';
+
+    }
+
+
+    /********************************************************
+     * DISABLED
+     ********************************************************/
+
+    if (
+      result.status ===
+        'disabled'
+    ) {
+
+      if (scannerRunning) {
+
+        try {
+          await stopScanner();
+        } catch (ignore) {}
+
+      }
+
+
+      clearStoredAuthorization(false);
+
+      showAccessScreen();
+
+      showAccessMessage(
+        'error',
+        'Scanner access is disabled. Pending QR codes are preserved.'
+      );
+
+      return 'pause';
+
+    }
+
+
+    /********************************************************
+     * INVALID
+     *
+     * This is a definitive result, so no verification needed.
+     ********************************************************/
+
+    if (
+      result.status ===
+        'invalid'
+    ) {
+
+      setStatus(
+        'error',
+        'INVALID QR CODE',
+        result.message ||
+        'Invalid QR code.'
+      );
+
+      addRecentResult(
+        item.code,
+        'error',
+        'INVALID'
+      );
+
+      errorFeedback();
+
+      return 'completed';
+
+    }
+
+
+    /********************************************************
+     * NEW V5 FIX:
+     *
+     * UNKNOWN / ERROR / AMBIGUOUS JSON RESPONSE
+     *
+     * DO NOT SHOW CHECK-IN ERROR.
+     *
+     * The Sheet may already contain the successful write.
+     ********************************************************/
+
+    console.warn(
+      'Ambiguous server result:',
+      result
+    );
+
+
+    return await resolveAmbiguousScan(
+      item
+    );
+
+
+  } catch (error) {
+
+    if (queueStopRequested) return 'pause';
+
+    /********************************************************
+     * NETWORK / HTTP / INVALID RESPONSE
+     *
+     * Same rule:
+     * NEVER immediately mark it failed.
+     ********************************************************/
+
+    console.warn(
+      'Ambiguous scan request:',
+      error
+    );
+
+
+    return await resolveAmbiguousScan(
+      item
+    );
+
+  }
+
+}
+
+
+/************************************************************
+ * RESOLVE AMBIGUOUS SCAN
+ *
+ * This is the main V5 fix.
+ ************************************************************/
+
+async function resolveAmbiguousScan(
+  item
+) {
+
+  if (queueStopRequested) return 'pause';
+
+  setStatus(
+    'processing',
+    'PROCESSING CHECK-IN...',
+    'Waiting for confirmation from the check-in server...'
+  );
+  updateRecentResultStatus(item.code, 'pending', 'PROCESSING');
+
+
+  /**********************************************************
+   * ONE VERIFICATION REQUEST
+   * MAX BROWSER WAIT = 3 SECONDS
+   **********************************************************/
+
+  const verified =
+    await verifySavedScan(
+      item
+    );
+
+
+  /**********************************************************
+   * FOUND
+   *
+   * This directly fixes:
+   *
+   * QR saved in Sheet
+   * but scanner previously showed CHECK-IN ERROR.
+   **********************************************************/
+
+  if (
+    verified &&
+    verified.found === true
+  ) {
+
+    showResult(
+      item.code,
+      verified.timestamp || '',
+      verified.serverMs,
+      verified.savedCode || item.savedCode || item.code
+    );
+
+
+    setStatus(
+      'success',
+      'CHECK-IN CONFIRMED',
+      'QR was successfully saved in Google Sheets.'
+    );
+
+
+    addRecentResult(
+      item.code,
+      'success',
+      'CONFIRMED'
+    );
+
+
+    successFeedback();
+
+
+    return 'completed';
+
+  }
+
+
+  /**********************************************************
+   * DEFINITIVELY NOT FOUND
+   *
+   * Safe to retry scan.
+   **********************************************************/
+
+  if (
+    verified &&
+    verified.found === false
+  ) {
+
+    item.networkRetries =
+      Number(
+        item.networkRetries || 0
+      ) + 1;
+
+
+    persistQueue();
+
+
+    if (
+      item.networkRetries <=
+      CONFIG.MAX_NETWORK_RETRIES
+    ) {
+
+      setStatus(
+        'processing',
+        'RETRYING CHECK-IN...',
+        'QR was not found. Retrying save automatically...'
+      );
+
+
+      await sleep(
+        CONFIG.NETWORK_RETRY_DELAY
+      );
+
+
+      return await processQueueItem(
+        item
+      );
+
+    }
+
+
+    /********************************************************
+     * Do not discard QR.
+     ********************************************************/
+
+    item.networkRetries = 0;
+
+    persistQueue();
+
+
+    setStatus(
+      'processing',
+      'PROCESSING CHECK-IN...',
+      'Confirmation is taking longer than usual. QR remains safely queued.'
+    );
+    updateRecentResultStatus(item.code, 'pending', 'PROCESSING');
+
+
+    await sleep(800);
+
+
+    return await processQueueItem(
+      item
+    );
+
+  }
+
+
+  /**********************************************************
+   * VERIFICATION TIMED OUT / FAILED
+   *
+   * IMPORTANT:
+   *
+   * We still don't know whether it was saved.
+   *
+   * Therefore:
+   * - don't say failed
+   * - don't remove from queue
+   * - don't blindly throw QR away
+   **********************************************************/
+
+  setStatus(
+    'processing',
+    'PROCESSING CHECK-IN...',
+    'Still confirming. QR remains safely queued and will not be discarded.'
+  );
+  updateRecentResultStatus(item.code, 'pending', 'PROCESSING');
+
+
+  persistQueue();
+
+
+  await sleep(800);
+
+
+  return await processQueueItem(
+    item
+  );
+
+}
+
+
+/************************************************************
+ * FALLBACK VERIFICATION — MAX 3 SECONDS
+ ************************************************************/
+
+async function verifySavedScan(
+  code
+) {
+
+  const controller =
+    new AbortController();
+
+
+  const timeout =
+    setTimeout(
+      function() {
+        controller.abort();
+      },
+      CONFIG.VERIFY_TIMEOUT
+    );
+
+
+  try {
+
+    const result =
+      await postToUrl(
+        apiUrl,
+        {
+          action: 'check',
+          session: sessionToken,
+          requestId: code.id || '',
+          code: code.code || code,
+          saveMode: code.saveMode || 'full',
+          delimiter: code.delimiter || '',
+        },
+        controller.signal
+      );
+
+
+    if (
+      result.status ===
+        'session_expired'
+    ) {
+
+      await authorizationExpired();
+
+      return null;
+
+    }
+
+
+    if (
+      result.ok === true &&
+      result.status ===
+        'found' &&
+      result.found === true
+    ) {
+
+      return {
+        found: true,
+        timestamp:
+          result.timestamp || '',
+        serverMs:
+          result.serverMs,
+        savedCode:
+          result.savedCode || ''
+      };
+
+    }
+
+
+    if (
+      result.ok === true &&
+      result.status ===
+        'not_found'
+    ) {
+
+      return {
+        found: false
+      };
+
+    }
+
+
+    return null;
+
+
+  } catch (error) {
+
+    if (
+      error.name ===
+        'AbortError'
+    ) {
+
+      console.warn(
+        'Verification reached 3-second timeout.'
+      );
+
+    } else {
+
+      console.warn(
+        'Verification failed:',
+        error
+      );
+
+    }
+
+    return null;
+
+
+  } finally {
+
+    clearTimeout(timeout);
+
+  }
+
+}
+
+
+/************************************************************
+ * QUEUE STORAGE
+ ************************************************************/
+
+function openQueueDb() {
+  return new Promise(function(resolve, reject) {
+    if (!window.indexedDB) {
+      reject(new Error('IndexedDB unavailable'));
+      return;
+    }
+
+    const request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
+
+    request.onupgradeneeded = function(event) {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('state')) {
+        db.createObjectStore('state');
+      }
+    };
+
+    request.onsuccess = function() { resolve(request.result); };
+    request.onerror = function() { reject(request.error || new Error('IndexedDB open failed')); };
+  });
+}
+
+async function saveQueueToIndexedDb(snapshot) {
+  const db = await openQueueDb();
+  return new Promise(function(resolve, reject) {
+    const tx = db.transaction('state', 'readwrite');
+    tx.objectStore('state').put(snapshot, 'scanQueue');
+    tx.oncomplete = function() { db.close(); resolve(); };
+    tx.onerror = function() { db.close(); reject(tx.error); };
+  });
+}
+
+async function loadQueueFromIndexedDb() {
+  const db = await openQueueDb();
+  return new Promise(function(resolve, reject) {
+    const tx = db.transaction('state', 'readonly');
+    const req = tx.objectStore('state').get('scanQueue');
+    req.onsuccess = function() { resolve(req.result || []); };
+    req.onerror = function() { reject(req.error); };
+    tx.oncomplete = function() { db.close(); };
+  });
+}
+
+function persistQueue() {
+  const snapshot = scanQueue.map(function(item) { return Object.assign({}, item); });
+
+  // Immediate fallback for older/private browsers.
+  try {
+    sessionStorage.setItem('hwfScanQueue', JSON.stringify(snapshot));
+  } catch (error) {
+    console.warn('Unable to persist session queue:', error);
+  }
+
+  // Durable queue survives tab/browser restarts where IndexedDB is retained.
+  saveQueueToIndexedDb(snapshot).catch(function(error) {
+    console.warn('Unable to persist IndexedDB queue:', error);
+  });
+}
+
+async function restoreQueue() {
+  let parsed = null;
+
+  try {
+    parsed = await loadQueueFromIndexedDb();
+  } catch (error) {
+    console.warn('Unable to restore IndexedDB queue:', error);
+  }
+
+  // Migration/fallback from the previous sessionStorage implementation.
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    try {
+      const saved = sessionStorage.getItem('hwfScanQueue');
+      parsed = saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      parsed = [];
+    }
+  }
+
+  if (!Array.isArray(parsed)) parsed = [];
+
+  scanQueue = parsed.filter(function(item) {
+    return item && typeof item.code === 'string' && item.code.trim();
+  }).map(function(item) {
+    // Old queue migration: preserve old behavior if metadata is missing.
+    if (!item.id) item.id = createQueueId();
+    if (!item.saveMode) item.saveMode = 'full';
+    if (typeof item.delimiter !== 'string') item.delimiter = '';
+    if (!item.savedCode) item.savedCode = transformQrValue(item.code, item.saveMode, item.delimiter);
+    return item;
+  }).slice(0, CONFIG.MAX_QUEUE_SIZE);
+
+  persistQueue();
+}
+
+
+/************************************************************
+ * STOP & CLEAR QUEUE
+ ************************************************************/
+async function stopAndClearQueue() {
+  queueStopRequested = true;
+  if (activeScanController) {
+    try { activeScanController.abort(); } catch (ignore) {}
+    activeScanController = null;
+  }
+  scanQueue = [];
+  currentPending = null;
+
+  // Clear this scanner's local duplicate history too.
+  locallyConfirmed.clear();
+  try { localStorage.removeItem('hwfConfirmedCodes'); } catch (ignore) {}
+
+  // Allow the same QR to be captured immediately after clearing.
+  recentlyCaptured.clear();
+
+  try { sessionStorage.removeItem('hwfScanQueue'); } catch (ignore) {}
+  try {
+    const db = await openQueueDb();
+    await new Promise(function(resolve, reject) {
+      const tx = db.transaction('state', 'readwrite');
+      tx.objectStore('state').delete('scanQueue');
+      tx.oncomplete = function() { db.close(); resolve(); };
+      tx.onerror = function() { db.close(); reject(tx.error); };
+    });
+  } catch (error) {
+    console.warn('Unable to clear IndexedDB queue:', error);
+  }
+  updateQueueDisplay();
+  setStatus('ready','QUEUE & LOCAL CACHE CLEARED','Pending scans, waiting scans, and this scanner\'s local duplicate cache were cleared. Google Sheet rows are unchanged.');
+}
+
+
+/************************************************************
+ * COUNTERS
+ ************************************************************/
+
+function updateQueueDisplay() {
+
+  let waiting =
+    scanQueue.length;
+
+
+  if (
+    currentPending &&
+    waiting > 0
+  ) {
+    waiting--;
+  }
+
+
+  document
+    .getElementById(
+      'queueCount'
+    )
+    .textContent =
+      String(
+        Math.max(0, waiting)
+      );
+
+
+  document
+    .getElementById(
+      'pendingCount'
+    )
+    .textContent =
+      currentPending
+        ? '1'
+        : '0';
+
+}
+
+
+/************************************************************
+ * RECENT RESULTS
+ ************************************************************/
+
+function persistRecentResults() {
+  try {
+    localStorage.setItem(
+      'hwfRecentResults',
+      JSON.stringify(recentResults)
+    );
+  } catch (error) {
+    console.warn('Unable to persist scan history:', error);
+  }
+}
+
+
+function restoreRecentResults() {
+  recentResults = [];
+
+  try {
+    const raw = localStorage.getItem('hwfRecentResults');
+    if (!raw) return;
+
+    const values = JSON.parse(raw);
+    if (!Array.isArray(values)) return;
+
+    recentResults = values.filter(function(item) {
+      return item && typeof item.code === 'string';
+    });
+  } catch (error) {
+    console.warn('Unable to restore scan history:', error);
+    recentResults = [];
+  }
+}
+
+
+function clearRecentResults() {
+  recentResults = [];
+
+  try {
+    localStorage.removeItem('hwfRecentResults');
+  } catch (ignore) {}
+
+  renderRecentResults();
+}
+
+
+function updateRecentResultStatus(code, type, label) {
+  const key = String(code || '').trim();
+  const item = recentResults.find(function(entry) {
+    return String(entry.code || '').trim() === key;
+  });
+
+  if (item) {
+    item.type = type;
+    item.label = label;
+    item.updatedAt = Date.now();
+  } else {
+    recentResults.unshift({
+      code: key,
+      type: type,
+      label: label,
+      scannedAt: Date.now()
+    });
+  }
+
+  persistRecentResults();
+  renderRecentResults();
+}
+
+
+function addRecentResult(
+  code,
+  type,
+  label
+) {
+  updateRecentResultStatus(code, type, label);
+}
+
+
+function renderRecentResults() {
+
+  const container =
+    document.getElementById(
+      'recentList'
+    );
+
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (
+    recentResults.length === 0
+  ) {
+
+    container.innerHTML =
+      '<div style="color:#687c94;text-align:center;padding:8px;">No scans yet.</div>';
+
+    return;
+
+  }
+
+  recentResults.forEach(
+    function(item) {
+
+      const row =
+        document.createElement(
+          'div'
+        );
+
+      row.className =
+        'recent-item';
+
+      const code =
+        document.createElement(
+          'div'
+        );
+
+      code.className =
+        'recent-code';
+
+      code.textContent =
+        item.code;
+
+      const status =
+        document.createElement(
+          'div'
+        );
+
+      status.className =
+        'recent-' +
+        item.type;
+
+      status.textContent =
+        item.label;
+
+      row.appendChild(code);
+      row.appendChild(status);
+      container.appendChild(row);
+
+    }
+  );
+
+}
+
+
+/************************************************************
+ * RESULT
+ ************************************************************/
+
+function showResult(
+  code,
+  timestamp,
+  serverMs,
+  savedCode
+) {
+  const value = String(code || '');
+
+  // Queue/Pending/Saved processing may finish out of order.
+  // Never let it replace the QR that was most recently captured by the camera.
+  if (!lastCapturedQr || value !== lastCapturedQr) {
+    return;
+  }
+
+  const card = document.getElementById('resultCard');
+  const qr = document.getElementById('qrResult');
+  const saved = document.getElementById('savedValue');
+  const time = document.getElementById('timestamp');
+  const server = document.getElementById('serverTime');
+
+  if (card) card.style.display = 'block';
+  if (qr) qr.textContent = value || '—';
+
+  // Status belongs in SCANNED QR CODE, not in LAST SCANNED QR.
+  if (saved) saved.textContent = '';
+  if (time) time.textContent = '';
+  if (server) server.textContent = '';
+}
+
+
+/************************************************************
+ * STATUS
+ ************************************************************/
+
+function setStatus(
+  type,
+  title,
+  message
+) {
+
+  const box =
+    document.getElementById(
+      'status'
+    );
+
+  box.className =
+    'status ' + type;
+
+
+  document
+    .getElementById(
+      'statusTitle'
+    )
+    .textContent =
+      title;
+
+
+  document
+    .getElementById(
+      'statusMessage'
+    )
+    .textContent =
+      message;
+
+}
+
+
+/************************************************************
+ * SESSION COUNTDOWN
+ ************************************************************/
+
+function startCountdown() {
+
+  stopCountdown();
+
+  updateCountdown();
+
+  countdownTimer =
+    setInterval(
+      updateCountdown,
+      1000
+    );
+
+}
+
+
+function stopCountdown() {
+
+  if (countdownTimer) {
+
+    clearInterval(
+      countdownTimer
+    );
+
+    countdownTimer = null;
+
+  }
+
+}
+
+
+async function updateCountdown() {
+
+  if (!sessionExpiresAt) {
+    return;
+  }
+
+
+  const remaining =
+    sessionExpiresAt -
+    Date.now();
+
+
+  if (remaining <= 0) {
+
+    stopCountdown();
+
+    await authorizationExpired();
+
+    return;
+
+  }
+
+
+  const totalSeconds =
+    Math.floor(
+      remaining / 1000
+    );
+
+  const hours =
+    Math.floor(
+      totalSeconds / 3600
+    );
+
+  const minutes =
+    Math.floor(
+      (
+        totalSeconds % 3600
+      ) / 60
+    );
+
+  const seconds =
+    totalSeconds % 60;
+
+
+  let text =
+    'Re-authorization in ';
+
+
+  if (hours > 0) {
+
+    text +=
+      hours + 'h ';
+
+  }
+
+
+  text +=
+    String(minutes)
+      .padStart(2, '0') +
+    'm ' +
+    String(seconds)
+      .padStart(2, '0') +
+    's';
+
+
+  document
+    .getElementById(
+      'sessionCountdown'
+    )
+    .textContent =
+      text;
+
+}
+
+
+/************************************************************
+ * AUTH EXPIRED
+ ************************************************************/
+
+async function authorizationExpired() {
+
+  if (scannerRunning) {
+
+    try {
+      await stopScanner();
+    } catch (ignore) {}
+
+  }
+
+
+  persistQueue();
+
+  clearRecentResults();
+  clearStoredAuthorization(false);
+
+  showAccessScreen();
+
+
+  showAccessMessage(
+    'error',
+    scanQueue.length > 0
+      ? 'Authorization expired. ' +
+        scanQueue.length +
+        ' pending QR code(s) are preserved. Re-authorize to continue.'
+      : 'Authorization expired. Enter the Script ID and Token ID again.'
+  );
+
+
+  errorFeedback();
+
+}
+
+
+/************************************************************
+ * CLEAR ACCESS
+ ************************************************************/
+
+async function clearAuthorization() {
+
+  const oldUrl =
+    apiUrl;
+
+  const oldSession =
+    sessionToken;
+
+
+  if (scannerRunning) {
+
+    try {
+      await stopScanner();
+    } catch (ignore) {}
+
+  }
+
+
+  persistQueue();
+
+  clearRecentResults();
+  clearStoredAuthorization(false);
+
+  showAccessScreen();
+
+
+  showAccessMessage(
+    'success',
+    scanQueue.length > 0
+      ? 'Access cleared. Pending QR codes are preserved.'
+      : 'Scanner access cleared.'
+  );
+
+
+  if (
+    oldUrl &&
+    oldSession
+  ) {
+
+    try {
+
+      await postToUrl(
+        oldUrl,
+        {
+          action: 'logout',
+          session: oldSession
+        }
+      );
+
+    } catch (error) {
+
+      console.warn(error);
+
+    }
+
+  }
+
+}
+
+
+function clearStoredAuthorization(
+  clearQueue = false
+) {
+
+  apiUrl = '';
+
+  storedScriptId = '';
+
+  sessionToken = '';
+
+  sessionExpiresAt = 0;
+
+
+  localStorage.removeItem(
+    'hwfApiUrl'
+  );
+  sessionStorage.removeItem(
+    'hwfApiUrl'
+  );
+
+  localStorage.removeItem(
+    'hwfScriptId'
+  );
+  sessionStorage.removeItem(
+    'hwfScriptId'
+  );
+
+  localStorage.removeItem(
+    'hwfSession'
+  );
+  sessionStorage.removeItem(
+    'hwfSession'
+  );
+
+  localStorage.removeItem(
+    'hwfExpiresAt'
+  );
+  sessionStorage.removeItem(
+    'hwfExpiresAt'
+  );
+
+
+  if (clearQueue) {
+
+    scanQueue = [];
+
+    sessionStorage.removeItem(
+      'hwfScanQueue'
+    );
+
+    updateQueueDisplay();
+
+  }
+
+
+  stopCountdown();
+
+  // Starting over after CLEAR ACCESS / expiration gets a fresh authorization window.
+  authorizationWindowExpiresAt = 0;
+  localStorage.removeItem('hwfAuthorizationWindowExpiresAt');
+
+}
+
+
+/************************************************************
+ * VIEWS
+ ************************************************************/
+
+function showAccessScreen() {
+
+  document
+    .getElementById(
+      'scannerView'
+    )
+    .style.display =
+      'none';
+
+
+  document
+    .getElementById(
+      'accessView'
+    )
+    .style.display =
+      'block';
+
+}
+
+
+function showScannerView() {
+
+  document
+    .getElementById(
+      'accessView'
+    )
+    .style.display =
+      'none';
+
+
+  document
+    .getElementById(
+      'scannerView'
+    )
+    .style.display =
+      'block';
+
+
+  hideAccessMessage();
+
+  updateQueueDisplay();
+
+}
+
+
+/************************************************************
+ * ACCESS MESSAGE
+ ************************************************************/
+
+function showAccessMessage(
+  type,
+  message
+) {
+
+  const element =
+    document.getElementById(
+      'accessMessage'
+    );
+
+  element.className =
+    'access-message ' +
+    type;
+
+  element.textContent =
+    message;
+
+}
+
+
+function hideAccessMessage() {
+
+  const element =
+    document.getElementById(
+      'accessMessage'
+    );
+
+  element.className =
+    'access-message';
+
+  element.textContent = '';
+
+}
+
+
+/************************************************************
+ * TOKEN
+ ************************************************************/
+
+function toggleToken() {
+
+  const input =
+    document.getElementById(
+      'accessToken'
+    );
+
+  const toggle =
+    document.getElementById(
+      'tokenToggle'
+    );
+
+
+  if (
+    input.type ===
+    'password'
+  ) {
+
+    input.type = 'text';
+
+    toggle.textContent =
+      'HIDE';
+
+  } else {
+
+    input.type =
+      'password';
+
+    toggle.textContent =
+      'SHOW';
+
+  }
+
+}
+
+
+/************************************************************
+ * API
+ ************************************************************/
+
+async function apiRequest(data, signal = undefined) {
+
+  if (!apiUrl) {
+
+    throw new Error(
+      'Apps Script URL is not configured.'
+    );
+
+  }
+
+  return await postToUrl(
+    apiUrl,
+    data,
+    signal
+  );
+
+}
+
+
+/************************************************************
+ * POST
+ ************************************************************/
+
+async function postToUrl(
+  url,
+  data,
+  signal = undefined
+) {
+
+  const response =
+    await fetch(
+      url,
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type':
+            'text/plain;charset=utf-8'
+        },
+
+        body:
+          JSON.stringify(data),
+
+        redirect: 'follow',
+
+        cache: 'no-store',
+
+        signal: signal
+      }
+    );
+
+
+  let text = '';
+
+
+  try {
+
+    text =
+      await response.text();
+
+  } catch (error) {
+
+    throw new Error(
+      'Unable to read server response.'
+    );
+
+  }
+
+
+  /**********************************************************
+   * IMPORTANT:
+   *
+   * Parse Apps Script JSON BEFORE rejecting HTTP status.
+   **********************************************************/
+
+  if (text) {
+
+    try {
+
+      const result =
+        JSON.parse(text);
+
+      if (
+        result &&
+        typeof result ===
+          'object' &&
+        typeof result.status ===
+          'string'
+      ) {
+
+        return result;
+
+      }
+
+    } catch (ignore) {}
+
+  }
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      'Server returned HTTP ' +
+      response.status
+    );
+
+  }
+
+
+  throw new Error(
+    'Invalid response from Apps Script.'
+  );
+
+}
+
+
+/************************************************************
+ * SLEEP
+ ************************************************************/
+
+function sleep(ms) {
+
+  return new Promise(
+    function(resolve) {
+      setTimeout(resolve, ms);
+    }
+  );
+
+}
+
+
+/************************************************************
+ * FEEDBACK
+ ************************************************************/
+
+function captureFeedback() {
+
+  if (
+    'vibrate' in navigator
+  ) {
+    navigator.vibrate(40);
+  }
+
+  playTone(1100, .05);
+
+}
+
+
+function successFeedback() {
+
+  if (
+    'vibrate' in navigator
+  ) {
+    navigator.vibrate([
+      80,
+      40,
+      80
+    ]);
+  }
+
+  playTone(880, .10);
+
+}
+
+
+function duplicateFeedback() {
+
+  if (
+    'vibrate' in navigator
+  ) {
+    navigator.vibrate([
+      150,
+      70,
+      150
+    ]);
+  }
+
+  playTone(440, .18);
+
+}
+
+
+function errorFeedback() {
+
+  if (
+    'vibrate' in navigator
+  ) {
+    navigator.vibrate(300);
+  }
+
+  playTone(220, .25);
+
+}
+
+
+function playTone(
+  frequency,
+  duration
+) {
+
+  try {
+
+    const AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    if (!AudioContext) {
+      return;
+    }
+
+
+    const context =
+      new AudioContext();
+
+    const oscillator =
+      context.createOscillator();
+
+    const gain =
+      context.createGain();
+
+
+    oscillator.type =
+      'sine';
+
+    oscillator.frequency.value =
+      frequency;
+
+    gain.gain.value =
+      .06;
+
+
+    oscillator.connect(gain);
+
+    gain.connect(
+      context.destination
+    );
+
+
+    oscillator.start();
+
+    oscillator.stop(
+      context.currentTime +
+      duration
+    );
+
+
+    oscillator.onended =
+      function() {
+        context.close();
+      };
+
+
+  } catch (error) {
+
+    console.warn(error);
+
+  }
+
+}
+
+
+/************************************************************
+ * PAGE EXIT
+ ************************************************************/
+
+window.addEventListener(
+  'beforeunload',
+  function() {
+
+    persistQueue();
+
+    if (
+      html5QrCode &&
+      scannerRunning
+    ) {
+
+      html5QrCode
+        .stop()
+        .catch(
+          function() {}
+        );
+
+    }
+
+  }
+);
+
+</script>
+
+
+<script>
+/* Unified Access v1.1 redirect */
+(function() {
+  function goLogin() {
+    window.location.replace('index.html');
+  }
+
+  // Existing application functions are already defined at this point.
+  if (typeof window.showAccessScreen === 'function') {
+    const originalShowAccessScreen = window.showAccessScreen;
+    window.showAccessScreen = function() {
+      try { originalShowAccessScreen.apply(this, arguments); } catch(ignore) {}
+      goLogin();
+    };
+  }
+
+  // Extra guard for a page opened directly with no valid authorization.
+  window.addEventListener('load', function() {
+    const sessionKey = 'hwfSession';
+    const expiryKey = 'hwfExpiresAt';
+    const session =
+      localStorage.getItem(sessionKey) ||
+      sessionStorage.getItem(sessionKey) || '';
+    const expiry = Number(
+      localStorage.getItem(expiryKey) ||
+      sessionStorage.getItem(expiryKey) || 0
+    );
+
+    if (!session || !expiry || expiry <= Date.now()) {
+      goLogin();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
