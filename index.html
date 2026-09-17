@@ -27,7 +27,7 @@ button{border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:700;c
 <div class="form-group"><label>Token ID</label><div class="token-wrapper"><input id="accessToken" type="password" placeholder="Enter TOKEN_ID" autocomplete="off" required><span id="tokenToggle" class="token-toggle" onclick="toggleToken()">SHOW</span></div></div>
 <button id="authorizeButton" type="submit">LOGIN</button></form>
 <div id="accessMessage" class="access-message"></div><div id="routeInfo" class="route-info"></div></div>
-<div class="footer">HINIRANG 2026 Event Access @ dmj20 v1.0</div></div>
+<div class="footer">HINIRANG 2026 Event Access @ dmj20 v1.3</div></div>
 <script>
 const ROUTES={scanner:'scanner.html',attendees:'attendees.html'};
 function normalizeScriptId(value){value=String(value||'').trim();const m=value.match(/\/s\/([^\/]+)\/exec\/?$/i);if(m&&m[1])return m[1];if(/^[A-Za-z0-9_-]+$/.test(value))return value;throw new Error('Invalid Script ID or Apps Script Web App URL.');}
