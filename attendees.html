@@ -429,7 +429,7 @@ html.returning-to-login body{
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v3.1</div>
+  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v3.4</div>
 </div>
 
 <script>
@@ -754,14 +754,16 @@ function sortAttendeeRows(rows){
 }
 
 function sortIndicator(column){
-  if(attendeeSort.column!==column)return '';
+  if(attendeeSort.column!==column){
+    return '<span class="sort-indicator">▼/▲</span>';
+  }
   return '<span class="sort-indicator">'+(attendeeSort.direction==='asc'?'▲':'▼')+'</span>';
 }
 
 function renderAttendees(){
   const data=sortAttendeeRows(getVisibleRows()),head=document.getElementById('attendeeHead'),body=document.getElementById('attendeeBody');
   head.innerHTML='<tr><th><input id="selectAllAttendees" type="checkbox" aria-label="Select all" onchange="toggleAllAttendees(this.checked)"></th>'+
-    attendeeColumns.map(c=>'<th class="sortable-header" role="button" tabindex="0" title="Sort by '+escapeHtmlAttr(c)+'" onclick="toggleAttendeeSort('+JSON.stringify(c)+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleAttendeeSort('+JSON.stringify(c)+');}">'+escapeHtml(c)+sortIndicator(c)+'</th>').join('')+
+    attendeeColumns.map(c=>'<th class="sortable-header" role="button" tabindex="0" data-sort-column="'+escapeHtmlAttr(c)+'" title="Sort by '+escapeHtmlAttr(c)+'">'+escapeHtml(c)+sortIndicator(c)+'</th>').join('')+
     '<th>Status</th><th>Comment</th></tr>';
 
   body.innerHTML=data.length?data.map((r,i)=>{
@@ -887,7 +889,24 @@ async function submitSelectedAttendees(){
 function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function escapeHtmlAttr(v){return escapeHtml(v);}
 
-window.addEventListener('DOMContentLoaded',initializePage);
+window.addEventListener('DOMContentLoaded',function(){
+  const head=document.getElementById('attendeeHead');
+  if(head){
+    head.addEventListener('click',function(event){
+      const th=event.target.closest('th.sortable-header');
+      if(!th||!head.contains(th))return;
+      toggleAttendeeSort(th.dataset.sortColumn||'');
+    });
+    head.addEventListener('keydown',function(event){
+      if(event.key!=='Enter'&&event.key!==' ')return;
+      const th=event.target.closest('th.sortable-header');
+      if(!th||!head.contains(th))return;
+      event.preventDefault();
+      toggleAttendeeSort(th.dataset.sortColumn||'');
+    });
+  }
+  initializePage();
+});
 async function initializePage(){
   if(authorizationWindowExpiresAt>0)sessionExpiresAt=authorizationWindowExpiresAt;
   apiUrl=localStorage.getItem('raApiUrl')||apiUrl;storedScriptId=localStorage.getItem('raScriptId')||storedScriptId;sessionToken=localStorage.getItem('raSession')||sessionToken;accessRole=localStorage.getItem('raAccessRole')||'';
