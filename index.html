@@ -44,7 +44,7 @@ button{border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:700;c
 <div id="accessMessage" class="access-message"></div><div id="routeInfo" class="route-info"></div></div>
 <div class="footer" id="appFooter"></div></div>
 <script>
-const APP_VERSION='dmj20 v3.1';
+const APP_VERSION='dmj20 v3.7';
 document.getElementById('appFooter').textContent='Event Access | '+APP_VERSION;
 const ROUTES={scanner:'scanner.html',attendees:'attendees.html'};
 function normalizeScriptId(value){value=String(value||'').trim();const m=value.match(/\/s\/([^\/]+)\/exec\/?$/i);if(m&&m[1])return m[1];if(/^[A-Za-z0-9_-]+$/.test(value))return value;throw new Error('Invalid Script ID or Apps Script Web App URL.');}
