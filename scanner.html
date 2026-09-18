@@ -610,14 +610,15 @@ button:disabled {
 
   </div>
 
-  <div class="footer">
-    QR Code Scanner | dmj20 v3.8 | Unified v1.7
-  </div>
+  <div class="footer"><span id="appFooter"></span></div>
 
 </div>
 
 
 <script>
+const APP_VERSION='dmj20 v3.1';
+document.getElementById('appFooter').textContent='QR Scanner | '+APP_VERSION;
+
 
 /************************************************************
  * CONFIG
