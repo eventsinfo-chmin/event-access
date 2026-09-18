@@ -3401,6 +3401,12 @@ async function runBackgroundSecurityCheck(){
     const result=await postToUrl(apiUrl,{action:'security',session:session});
     if(!(result&&result.ok===true&&result.status==='authorized')){
       if(typeof authorizationExpired==='function') await authorizationExpired();
+    }else if(result.expiresAt){
+      const updatedExpiry=Number(result.expiresAt);
+      if(Number.isFinite(updatedExpiry)&&updatedExpiry>0){
+        localStorage.setItem('hwfExpiresAt',String(updatedExpiry));
+        localStorage.setItem('hwfAuthorizationWindowExpiresAt',String(updatedExpiry));
+      }
     }
   }catch(ignore){
     // A temporary network failure must not interrupt active scanning/attendee work.
