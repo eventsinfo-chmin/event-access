@@ -297,6 +297,20 @@ html.returning-to-login body{
 }
 </style>
 
+
+<style>
+/* Submitted row status colors
+   Orange = submitted Confirmed
+   Yellow = submitted Comment without confirmation
+   A newly checked row that has NOT been submitted stays white/default. */
+.attendee-table tbody tr.row-confirmed > td{
+  background:rgba(255,159,67,.18) !important;
+}
+.attendee-table tbody tr.row-comment > td{
+  background:rgba(241,199,91,.16) !important;
+}
+</style>
+
 </head>
 <body>
 <div class="container">
@@ -368,7 +382,7 @@ html.returning-to-login body{
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v2.5</div>
+  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v2.8</div>
 </div>
 
 <script>
@@ -420,6 +434,7 @@ let sessionToken = localStorage.getItem('raSession') || '';
 let sessionExpiresAt = Number(localStorage.getItem('raExpiresAt') || 0);
 let authorizationWindowExpiresAt = Number(localStorage.getItem('raAuthorizationWindowExpiresAt') || 0);
 let countdownTimer = null;
+let isInitialPageLoad = true;
 let attendeeRows = [];
 let attendeeColumns = [];
 let groupColumn = 'Group Name';
@@ -544,8 +559,21 @@ syncRoleAwareFilterUI();
     applyGroupAccessUi();
     restoreAdminFilterState();
     renderAttendees();
-    attendeeMessage(showMessage?'ok':'',showMessage?'Data loaded.':'');
-  }catch(error){attendeeMessage('error',error.message||'Unable to load attendees.');}
+
+    // Automatic login/page refresh:
+    // show "Refreshing registered attendees..." only while loading,
+    // then leave the message area blank after a successful load.
+    // Manual REFRESH keeps the normal "Data loaded." success message.
+    if(isInitialPageLoad){
+      attendeeMessage('','');
+      isInitialPageLoad=false;
+    }else{
+      attendeeMessage(showMessage?'ok':'',showMessage?'Data loaded.':'');
+    }
+  }catch(error){
+    isInitialPageLoad=false;
+    attendeeMessage('error',error.message||'Unable to load attendees.');
+  }
 }
 function saveAdminFilterState(){
   if(String(accessRole||'').toLowerCase()!=='admin')return;
@@ -650,7 +678,8 @@ function renderAttendees(){
     const saved=savedRecords.get(key)||null;
     const confirmed=!!(saved&&String(saved.status||'').toLowerCase()==='confirmed');
     const comment=saved?String(saved.comment||''):'';
-    return '<tr>'+
+    const rowClass=confirmed?'row-confirmed':(comment.trim()?'row-comment':'');
+    return '<tr class="'+rowClass+'">'+
       '<td><input class="attendeeCheck" type="checkbox" data-row="'+i+'" '+(confirmed?'checked disabled':'')+' onchange="syncAllAttendees()"></td>'+
       attendeeColumns.map(c=>'<td>'+escapeHtml(r[c])+'</td>').join('')+
       '<td class="'+(confirmed?'status-confirmed':'')+'">'+(confirmed?'Confirmed':'')+'</td>'+
