@@ -616,7 +616,8 @@ button:disabled {
 
 
 <script>
-const APP_VERSION='dmj20 v3.1';
+const APP_VERSION =
+  localStorage.getItem('eventAppVersion') || '';
 document.getElementById('appFooter').textContent='QR Scanner | '+APP_VERSION;
 
 
