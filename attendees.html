@@ -253,7 +253,6 @@ html.returning-to-login body{
   border-radius:10px;
   cursor:pointer;
   font-weight:800;
-  font-size: 12px !important;
 }
 .attendee-instructions{
   font-family: Arial, sans-serif;
@@ -301,27 +300,21 @@ html.returning-to-login body{
 
 <style>
 /* Submitted status colors — TEXT ONLY, never the row background.
-   Green  = Confirmed only
-   Yellow = Comment only
-   Orange = Confirmed + Comment
-   White/default = checked but not yet submitted */
+   Orange = submitted Confirmed
+   Yellow = submitted Comment without confirmation
+   Newly checked but not submitted stays normal white. */
 .attendee-table tbody tr.row-confirmed > td:not(:first-child){
-  color:#45d483 !important;
+  color:#ff9f43 !important;
 }
 .attendee-table tbody tr.row-comment > td:not(:first-child){
   color:#f1c75b !important;
 }
-.attendee-table tbody tr.row-confirmed-comment > td:not(:first-child){
-  color:#ff9f43 !important;
-}
+/* Keep the comment input text aligned with the saved row status color. */
 .attendee-table tbody tr.row-confirmed .attendee-comment{
-  color:#45d483 !important;
+  color:#ff9f43 !important;
 }
 .attendee-table tbody tr.row-comment .attendee-comment{
   color:#f1c75b !important;
-}
-.attendee-table tbody tr.row-confirmed-comment .attendee-comment{
-  color:#ff9f43 !important;
 }
 </style>
 
@@ -338,25 +331,6 @@ html.returning-to-login body{
 }
 #instructionToggleIcon{
   margin-left:0 !important;
-}
-</style>
-
-
-<style>
-/* v3.1 — sortable attendee list headers */
-.attendee-table th.sortable-header{
-  cursor:pointer;
-  user-select:none;
-}
-.attendee-table th.sortable-header:hover{
-  text-decoration:underline;
-}
-.sort-indicator{
-  display:inline-block;
-  margin-left:5px;
-  font-size:9px;
-  opacity:.8;
-  vertical-align:middle;
 }
 </style>
 
@@ -421,16 +395,17 @@ html.returning-to-login body{
         <div id="attendeeInstructions" class="attendee-instructions" hidden>
           <strong>How to Confirm Attendees</strong>
           <ol>
-            <li>Confirm attendees by checking the box in first column.</li>
+            <li>Find the attendee’s name and verify that it is the correct person.</li>
+            <li>Check the box beside the attendee’s name to mark them for confirmation.</li>
             <li>You may enter a Comment when needed.</li>
-            <li>Click SUBMIT SELECTED to save the confirmation or submit only comment.</li>
-            <li>Once an attendee is Confirmed, the confirmation cannot be undone but you can still submit comment.</li>
+            <li>Click SUBMIT SELECTED to save the confirmation.</li>
+            <li>Once an attendee is Confirmed, the confirmation cannot be undone.</li>
           </ol>
         </div>
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v3.4</div>
+  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v3.0 VALIDITY</div>
 </div>
 
 <script>
@@ -492,7 +467,6 @@ let assignedGroup = '';
 syncRoleAwareFilterUI();
 let confirmedKeys = new Set();
 let savedRecords = new Map();
-let attendeeSort = {column:'', direction:'asc'};
 let uiConfig = {eventTitle:'REGISTERED ATTENDEES',eventSubtitle:'Event Registration'};
 
 
@@ -554,7 +528,7 @@ async function updateCountdown(){
   const remaining=sessionExpiresAt-Date.now();
   if(remaining<=0){stopCountdown();await authorizationExpired();return;}
   const total=Math.floor(remaining/1000),h=Math.floor(total/3600),m=Math.floor((total%3600)/60),s=total%60;
-  let text='Re-authorization in ';if(h>0)text+=h+'h ';text+=String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s';
+  let text='Validity ends in ';if(h>0)text+=h+'h ';text+=String(m).padStart(2,'0')+'m '+String(s).padStart(2,'0')+'s';
   document.getElementById('sessionCountdown').textContent=text;
 }
 
@@ -716,55 +690,10 @@ syncRoleAwareFilterUI();
 function attendeeKey(r){
   return attendeeColumns.map(c=>String(r[c]??'').trim()).join('\u001f');
 }
-function toggleAttendeeSort(column){
-  column=String(column||'');
-  if(!column)return;
-
-  if(attendeeSort.column===column){
-    attendeeSort.direction=attendeeSort.direction==='asc'?'desc':'asc';
-  }else{
-    attendeeSort.column=column;
-    attendeeSort.direction='asc';
-  }
-  renderAttendees();
-}
-
-function sortAttendeeRows(rows){
-  const data=rows.slice();
-  const column=attendeeSort.column;
-  if(!column)return data;
-
-  const direction=attendeeSort.direction==='desc'?-1:1;
-  data.sort(function(a,b){
-    const av=String(a[column]??'').trim();
-    const bv=String(b[column]??'').trim();
-
-    const an=Number(av.replace(/,/g,''));
-    const bn=Number(bv.replace(/,/g,''));
-    const bothNumeric=av!==''&&bv!==''&&Number.isFinite(an)&&Number.isFinite(bn);
-
-    let result;
-    if(bothNumeric){
-      result=an-bn;
-    }else{
-      result=av.localeCompare(bv,undefined,{numeric:true,sensitivity:'base'});
-    }
-    return result*direction;
-  });
-  return data;
-}
-
-function sortIndicator(column){
-  if(attendeeSort.column!==column){
-    return '<span class="sort-indicator">▼/▲</span>';
-  }
-  return '<span class="sort-indicator">'+(attendeeSort.direction==='asc'?'▲':'▼')+'</span>';
-}
-
 function renderAttendees(){
-  const data=sortAttendeeRows(getVisibleRows()),head=document.getElementById('attendeeHead'),body=document.getElementById('attendeeBody');
+  const data=getVisibleRows(),head=document.getElementById('attendeeHead'),body=document.getElementById('attendeeBody');
   head.innerHTML='<tr><th><input id="selectAllAttendees" type="checkbox" aria-label="Select all" onchange="toggleAllAttendees(this.checked)"></th>'+
-    attendeeColumns.map(c=>'<th class="sortable-header" role="button" tabindex="0" data-sort-column="'+escapeHtmlAttr(c)+'" title="Sort by '+escapeHtmlAttr(c)+'">'+escapeHtml(c)+sortIndicator(c)+'</th>').join('')+
+    attendeeColumns.map(c=>'<th>'+escapeHtml(c)+'</th>').join('')+
     '<th>Status</th><th>Comment</th></tr>';
 
   body.innerHTML=data.length?data.map((r,i)=>{
@@ -772,9 +701,7 @@ function renderAttendees(){
     const saved=savedRecords.get(key)||null;
     const confirmed=!!(saved&&String(saved.status||'').toLowerCase()==='confirmed');
     const comment=saved?String(saved.comment||''):'';
-    const hasComment=comment.trim()!=='';
-    const rowClass=confirmed&&hasComment?'row-confirmed-comment':
-      (confirmed?'row-confirmed':(hasComment?'row-comment':''));
+    const rowClass=confirmed?'row-confirmed':(comment.trim()?'row-comment':'');
     return '<tr class="'+rowClass+'">'+
       '<td><input class="attendeeCheck" type="checkbox" data-row="'+i+'" '+(confirmed?'checked disabled':'')+' onchange="syncAllAttendees()"></td>'+
       attendeeColumns.map(c=>'<td>'+escapeHtml(r[c])+'</td>').join('')+
@@ -890,24 +817,7 @@ async function submitSelectedAttendees(){
 function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function escapeHtmlAttr(v){return escapeHtml(v);}
 
-window.addEventListener('DOMContentLoaded',function(){
-  const head=document.getElementById('attendeeHead');
-  if(head){
-    head.addEventListener('click',function(event){
-      const th=event.target.closest('th.sortable-header');
-      if(!th||!head.contains(th))return;
-      toggleAttendeeSort(th.dataset.sortColumn||'');
-    });
-    head.addEventListener('keydown',function(event){
-      if(event.key!=='Enter'&&event.key!==' ')return;
-      const th=event.target.closest('th.sortable-header');
-      if(!th||!head.contains(th))return;
-      event.preventDefault();
-      toggleAttendeeSort(th.dataset.sortColumn||'');
-    });
-  }
-  initializePage();
-});
+window.addEventListener('DOMContentLoaded',initializePage);
 async function initializePage(){
   if(authorizationWindowExpiresAt>0)sessionExpiresAt=authorizationWindowExpiresAt;
   apiUrl=localStorage.getItem('raApiUrl')||apiUrl;storedScriptId=localStorage.getItem('raScriptId')||storedScriptId;sessionToken=localStorage.getItem('raSession')||sessionToken;accessRole=localStorage.getItem('raAccessRole')||'';
