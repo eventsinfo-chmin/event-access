@@ -3384,6 +3384,32 @@ window.addEventListener(
   }
 );
 
+
+// Background authorization security check.
+// Runs independently every 60 seconds so normal app operations remain unchanged.
+const BACKGROUND_SECURITY_CHECK_MS=60000;
+let backgroundSecurityCheckRunning=false;
+
+async function runBackgroundSecurityCheck(){
+  if(backgroundSecurityCheckRunning)return;
+  const session=localStorage.getItem('hwfSession');
+  const apiUrl=localStorage.getItem('hwfApiUrl');
+  if(!session||!apiUrl)return;
+
+  backgroundSecurityCheckRunning=true;
+  try{
+    const result=await postToUrl(apiUrl,{action:'security',session:session});
+    if(!(result&&result.ok===true&&result.status==='authorized')){
+      if(typeof authorizationExpired==='function') await authorizationExpired();
+    }
+  }catch(ignore){
+    // A temporary network failure must not interrupt active scanning/attendee work.
+  }finally{
+    backgroundSecurityCheckRunning=false;
+  }
+}
+
+setInterval(runBackgroundSecurityCheck,BACKGROUND_SECURITY_CHECK_MS);
 </script>
 
 
