@@ -123,7 +123,7 @@ button:disabled {
 .attendee-summary{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;color:#8fa5bd;font-size:12px;margin:8px 0}
 .attendee-table-wrap{overflow:auto;max-height:62vh;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:#0b1625}
 .attendee-table{width:100%;border-collapse:collapse;min-width:560px}
-.attendee-table th,.attendee-table td{padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;white-space:nowrap;font-size:13px}
+.attendee-table th,.attendee-table td{padding:8px 9px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;white-space:nowrap;font-size:13px}
 .attendee-table th{position:sticky;top:0;z-index:2;background:#17263a;color:#c7d5e5;font-size:11px;text-transform:uppercase}
 .attendee-table th:first-child,.attendee-table td:first-child{width:54px;text-align:center}
 .attendee-table input[type=checkbox]{width:18px;height:18px;accent-color:#62a7ff}
@@ -245,6 +245,9 @@ html.returning-to-login body{
 /* Collapsible instructions below Submit Selected */
 .attendee-help{margin-top:12px}
 .instruction-toggle{
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 800;
   width:100%;
   min-height:40px;
   border-radius:10px;
@@ -353,20 +356,19 @@ html.returning-to-login body{
           <span>Instructions</span><span id="instructionToggleIcon">▼</span>
         </button>
         <div id="attendeeInstructions" class="attendee-instructions" hidden>
-          <strong>How to use Registered Attendees</strong>
+          <strong>How to Confirm Attendees</strong>
           <ol>
-            <li>Use the checkbox beside an attendee to mark the attendee for confirmation.</li>
-            <li>You may add or edit a comment in the Comment field.</li>
-            <li>Use the checkbox in the table header to select or unselect all available attendees currently displayed.</li>
-            <li>Click <strong>SUBMIT SELECTED</strong> to save new confirmations or changed comments.</li>
-            <li>Confirmed attendees remain confirmed. Their comments can still be edited and submitted again.</li>
-            <li>Click <strong>REFRESH</strong> to reload the latest registered attendee data.</li>
+            <li>Find the attendee’s name and <strong>verify that it is the correct person</strong>.</li>
+            <li>Check the box beside the attendee’s name to mark them for confirmation.</li>
+            <li>You may enter a <strong>Comment</strong> when needed.</li>
+            <li>Click <strong>SUBMIT SELECTED</strong> to save the confirmation.</li>
+            <li>Once an attendee is <strong>Confirmed, the confirmation cannot be undone</strong>.</li>
           </ol>
         </div>
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v2.4</div>
+  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v2.5</div>
 </div>
 
 <script>
