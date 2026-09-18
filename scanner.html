@@ -9,7 +9,7 @@
   name="viewport"
   content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
 >
-
+<script src="app-version.js"></script>
 <title>QR Code Scanner</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -616,10 +616,8 @@ button:disabled {
 
 
 <script>
-const APP_VERSION =
-  localStorage.getItem('eventAppVersion') || '';
-document.getElementById('appFooter').textContent='QR Scanner | '+APP_VERSION;
-
+document.getElementById('appFooter').textContent =
+  'QR Scanner | ' + window.APP_VERSION;
 
 /************************************************************
  * CONFIG
