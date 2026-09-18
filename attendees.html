@@ -340,6 +340,25 @@ html.returning-to-login body{
 }
 </style>
 
+
+<style>
+/* v3.1 — sortable attendee list headers */
+.attendee-table th.sortable-header{
+  cursor:pointer;
+  user-select:none;
+}
+.attendee-table th.sortable-header:hover{
+  text-decoration:underline;
+}
+.sort-indicator{
+  display:inline-block;
+  margin-left:5px;
+  font-size:9px;
+  opacity:.8;
+  vertical-align:middle;
+}
+</style>
+
 </head>
 <body>
 <div class="container">
@@ -401,17 +420,16 @@ html.returning-to-login body{
         <div id="attendeeInstructions" class="attendee-instructions" hidden>
           <strong>How to Confirm Attendees</strong>
           <ol>
-            <li>Find the attendee’s name and verify that it is the correct person.</li>
-            <li>Check the box beside the attendee’s name to mark them for confirmation.</li>
+            <li>Confirm attendees by checking the box in first column.</li>
             <li>You may enter a Comment when needed.</li>
-            <li>Click SUBMIT SELECTED to save the confirmation.</li>
-            <li>Once an attendee is Confirmed, the confirmation cannot be undone.</li>
+            <li>Click SUBMIT SELECTED to save the confirmation or submit only comment.</li>
+            <li>Once an attendee is Confirmed, the confirmation cannot be undone but you can still submit comment.</li>
           </ol>
         </div>
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v3.0</div>
+  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v3.1</div>
 </div>
 
 <script>
@@ -473,6 +491,7 @@ let assignedGroup = '';
 syncRoleAwareFilterUI();
 let confirmedKeys = new Set();
 let savedRecords = new Map();
+let attendeeSort = {column:'', direction:'asc'};
 let uiConfig = {eventTitle:'REGISTERED ATTENDEES',eventSubtitle:'Event Registration'};
 
 
@@ -696,10 +715,53 @@ syncRoleAwareFilterUI();
 function attendeeKey(r){
   return attendeeColumns.map(c=>String(r[c]??'').trim()).join('\u001f');
 }
+function toggleAttendeeSort(column){
+  column=String(column||'');
+  if(!column)return;
+
+  if(attendeeSort.column===column){
+    attendeeSort.direction=attendeeSort.direction==='asc'?'desc':'asc';
+  }else{
+    attendeeSort.column=column;
+    attendeeSort.direction='asc';
+  }
+  renderAttendees();
+}
+
+function sortAttendeeRows(rows){
+  const data=rows.slice();
+  const column=attendeeSort.column;
+  if(!column)return data;
+
+  const direction=attendeeSort.direction==='desc'?-1:1;
+  data.sort(function(a,b){
+    const av=String(a[column]??'').trim();
+    const bv=String(b[column]??'').trim();
+
+    const an=Number(av.replace(/,/g,''));
+    const bn=Number(bv.replace(/,/g,''));
+    const bothNumeric=av!==''&&bv!==''&&Number.isFinite(an)&&Number.isFinite(bn);
+
+    let result;
+    if(bothNumeric){
+      result=an-bn;
+    }else{
+      result=av.localeCompare(bv,undefined,{numeric:true,sensitivity:'base'});
+    }
+    return result*direction;
+  });
+  return data;
+}
+
+function sortIndicator(column){
+  if(attendeeSort.column!==column)return '';
+  return '<span class="sort-indicator">'+(attendeeSort.direction==='asc'?'▲':'▼')+'</span>';
+}
+
 function renderAttendees(){
-  const data=getVisibleRows(),head=document.getElementById('attendeeHead'),body=document.getElementById('attendeeBody');
+  const data=sortAttendeeRows(getVisibleRows()),head=document.getElementById('attendeeHead'),body=document.getElementById('attendeeBody');
   head.innerHTML='<tr><th><input id="selectAllAttendees" type="checkbox" aria-label="Select all" onchange="toggleAllAttendees(this.checked)"></th>'+
-    attendeeColumns.map(c=>'<th>'+escapeHtml(c)+'</th>').join('')+
+    attendeeColumns.map(c=>'<th class="sortable-header" role="button" tabindex="0" title="Sort by '+escapeHtmlAttr(c)+'" onclick="toggleAttendeeSort('+JSON.stringify(c)+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleAttendeeSort('+JSON.stringify(c)+');}">'+escapeHtml(c)+sortIndicator(c)+'</th>').join('')+
     '<th>Status</th><th>Comment</th></tr>';
 
   body.innerHTML=data.length?data.map((r,i)=>{
