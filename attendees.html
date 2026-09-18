@@ -430,10 +430,13 @@ html.returning-to-login body{
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v3.4</div>
+  <div class="footer"><span id="appFooter"></span></div>
 </div>
 
 <script>
+const APP_VERSION='dmj20 v3.1';
+document.getElementById('appFooter').textContent='Registered Attendees | '+APP_VERSION;
+
 
 function syncRoleAwareFilterUI(){
   const toolbar=document.getElementById('attendeeToolbar');
