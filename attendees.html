@@ -299,15 +299,44 @@ html.returning-to-login body{
 
 
 <style>
-/* Submitted row status colors
-   Orange = submitted Confirmed
-   Yellow = submitted Comment without confirmation
-   A newly checked row that has NOT been submitted stays white/default. */
-.attendee-table tbody tr.row-confirmed > td{
-  background:rgba(255,159,67,.18) !important;
+/* Submitted status colors — TEXT ONLY, never the row background.
+   Green  = Confirmed only
+   Yellow = Comment only
+   Orange = Confirmed + Comment
+   White/default = checked but not yet submitted */
+.attendee-table tbody tr.row-confirmed > td:not(:first-child){
+  color:#45d483 !important;
 }
-.attendee-table tbody tr.row-comment > td{
-  background:rgba(241,199,91,.16) !important;
+.attendee-table tbody tr.row-comment > td:not(:first-child){
+  color:#f1c75b !important;
+}
+.attendee-table tbody tr.row-confirmed-comment > td:not(:first-child){
+  color:#ff9f43 !important;
+}
+.attendee-table tbody tr.row-confirmed .attendee-comment{
+  color:#45d483 !important;
+}
+.attendee-table tbody tr.row-comment .attendee-comment{
+  color:#f1c75b !important;
+}
+.attendee-table tbody tr.row-confirmed-comment .attendee-comment{
+  color:#ff9f43 !important;
+}
+</style>
+
+
+<style>
+/* v2.9 — keep Instructions and hide/unhide arrow together */
+.instruction-toggle{
+  width:auto !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:6px !important;
+  min-height:32px !important;
+}
+#instructionToggleIcon{
+  margin-left:0 !important;
 }
 </style>
 
@@ -372,17 +401,17 @@ html.returning-to-login body{
         <div id="attendeeInstructions" class="attendee-instructions" hidden>
           <strong>How to Confirm Attendees</strong>
           <ol>
-            <li>Find the attendee’s name and <strong>verify that it is the correct person.</strong></li>
+            <li>Find the attendee’s name and verify that it is the correct person.</li>
             <li>Check the box beside the attendee’s name to mark them for confirmation.</li>
-            <li>You may enter a <strong>Comment</strong> when needed.</li>
-            <li>Click <strong>SUBMIT SELECTED</strong> to save the confirmation.</li>
-            <li>Once an attendee is <strong>Confirmed, the confirmation cannot be undone.</strong></li>
+            <li>You may enter a Comment when needed.</li>
+            <li>Click SUBMIT SELECTED to save the confirmation.</li>
+            <li>Once an attendee is Confirmed, the confirmation cannot be undone.</li>
           </ol>
         </div>
       </div>
     </div>
   </div>
-  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v2.8</div>
+  <div class="footer">Registered Attendees | dmj20 v1.9 | Unified v3.0</div>
 </div>
 
 <script>
@@ -678,7 +707,9 @@ function renderAttendees(){
     const saved=savedRecords.get(key)||null;
     const confirmed=!!(saved&&String(saved.status||'').toLowerCase()==='confirmed');
     const comment=saved?String(saved.comment||''):'';
-    const rowClass=confirmed?'row-confirmed':(comment.trim()?'row-comment':'');
+    const hasComment=comment.trim()!=='';
+    const rowClass=confirmed&&hasComment?'row-confirmed-comment':
+      (confirmed?'row-confirmed':(hasComment?'row-comment':''));
     return '<tr class="'+rowClass+'">'+
       '<td><input class="attendeeCheck" type="checkbox" data-row="'+i+'" '+(confirmed?'checked disabled':'')+' onchange="syncAllAttendees()"></td>'+
       attendeeColumns.map(c=>'<td>'+escapeHtml(r[c])+'</td>').join('')+
