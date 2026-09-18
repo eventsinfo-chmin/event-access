@@ -39,7 +39,7 @@ button{border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:700;c
 <div class="access-subtitle">Enter Apps Script deployment ID and Token ID.</div>
 <form id="accessForm" onsubmit="authorizeAccess(event)">
 <div class="form-group"><label>Script ID</label><input id="scriptId" type="text" placeholder="ENTER SCRIPT_ID" autocomplete="off" required><div class="field-help">Deployment ID, /s/SCRIPT_ID/exec, or complete Apps Script Web App URL.</div></div>
-<div class="form-group"><label>Token ID</label><div class="token-wrapper"><input id="accessToken" type="password" placeholder="ENTER TOKEN_ID" autocomplete="off" required><span id="tokenToggle" class="token-toggle" onclick="toggleToken()">SHOW</span></div></div>
+<div class="form-group"><label>Token ID</label><div class="token-wrapper"><input id="accessToken" type="password" placeholder="ENTER TOKEN_ID" autocomplete="off" required><span id="tokenToggle" class="token-toggle" onclick="toggleToken()">SHOW</span></div><div class="field-help">TOKEN ID for QR Scanner or for Group/Admin list of Registered.</div></div>
 <button id="authorizeButton" type="submit">LOGIN</button></form>
 <div id="accessMessage" class="access-message"></div><div id="routeInfo" class="route-info"></div></div>
 <div class="footer" id="appFooter"></div></div>
